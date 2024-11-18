@@ -1,0 +1,1256 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Список квестов</title>
+    <style>
+        /* Основные цвета */
+        :root {
+            --color-bg: #27170d;
+            --color-sidebar-bg: #2e2e2e;
+            --color-header: #3c3c3c;
+            --color-accent: #f9c043;
+            --color-text: #ffffff;
+            --color-text-secondary: #cccccc;
+            --color-border: #555555;
+            --color-not-started: #6c757d;
+            --color-in-progress: #ffc107;
+            --color-completed: #497644;
+            --color-failed: #8b3c3c;
+        }
+
+        body {
+            display: flex;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            background-color: var(--color-bg);
+            color: var(--color-text);
+        }
+
+        /* Стили боковой панели */
+        .sidebar {
+            width: 250px;
+            background-color: var(--color-sidebar-bg);
+            overflow-y: auto;
+            padding: 0 10px 10px 10px;
+            border-right: 1px solid var(--color-border);
+            height: calc(100vh - 10px);
+            display: grid;
+            justify-content: space-between;
+            align-content: space-between;
+        }
+
+        .sidebar h2 {
+            text-align: center;
+            color: var(--color-accent);
+        }
+
+        .sidebar ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .sidebar li {
+            margin-bottom: 5px;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 4px;
+            color: var(--color-text);
+        }
+
+        .sidebar li:hover {
+            background-color: var(--color-header);
+        }
+
+        /* Стили основного контента */
+        .content {
+            flex: 1;
+            padding: 0 20px 20px 20px;
+            height: calc(100vh - 20px); /* Добавлено */
+            overflow-y: auto; /* Добавлено */
+        }
+
+        .quest-header {
+            scroll-margin-top: 63px;
+            cursor: pointer;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 5px;
+            background-color: var(--color-header);
+            color: var(--color-text);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .quest-header h2 {
+            margin: 0;
+            font-size: 18px;
+        }
+
+        .quest-actions {
+            display: flex;
+            align-items: center;
+        }
+
+        /* Панель переключателей статусов */
+        .status-toggle {
+            display: flex;
+            background-color: var(--color-border);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .status-toggle button {
+            background: none;
+            border: none;
+            padding: 5px 10px;
+            color: var(--color-text-secondary);
+            cursor: pointer;
+        }
+
+        .status-toggle button.active {
+            background-color: var(--color-accent);
+            color: var(--color-bg);
+        }
+
+        .quest-content {
+            display: none;
+            margin-bottom: 5px;
+            padding: 10px;
+            background-color: var(--color-header);
+            border-radius: 4px;
+            border-top: 1px solid var(--color-border);
+        }
+
+        /* Стили для статусов */
+        .status-not-started {
+            border-left: 5px solid var(--color-not-started);
+            background-color: rgb(from var(--color-not-started) r g b / .5);
+        }
+
+        .status-in-progress {
+            border-left: 5px solid var(--color-in-progress);
+            background-color: rgb(from var(--color-in-progress) r g b / .5);
+        }
+
+        .status-completed {
+            border-left: 5px solid var(--color-completed);
+            background-color: rgb(from var(--color-completed) r g b / .5);
+        }
+
+        .status-failed {
+            border-left: 5px solid var(--color-failed);
+            background-color: rgb(from var(--color-failed) r g b / .5);
+        }
+
+        /* Стили поля поиска */
+        .search-container {
+            position: sticky;
+            top: 5px;
+            z-index: 2;
+            padding: 10px;
+            background-color: var(--color-sidebar-bg);
+
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+
+        .search-container input {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+            background-color: var(--color-header);
+            color: var(--color-text);
+            border: 1px solid var(--color-border);
+            border-radius: 4px;
+        }
+
+        .search-container input::placeholder {
+            color: var(--color-text-secondary);
+        }
+
+        /* Стили ссылок */
+        a {
+            color: var(--color-accent);
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        /* Стили чекбоксов */
+        input[type="checkbox"] {
+            margin-right: 5px;
+        }
+
+        /* Стили списков внутри квестов */
+        .quest-content ol,
+        .quest-content ul {
+            margin-left: 20px;
+        }
+
+        .quest-content li {
+            margin-bottom: 5px;
+        }
+
+        /* Стили для шагов квеста */
+        .quest-content strong {
+            color: var(--color-accent);
+        }
+
+        .save-load-buttons {
+            display: flex;
+            margin-bottom: 5px;
+            justify-content: space-between;
+        }
+
+        .save-load-buttons button,
+        .save-load-buttons label {
+            font-family: inherit;
+            flex: 1;
+            margin: 0 5px;
+            padding: 2px 12px;
+            font-size: 10px;
+            cursor: pointer;
+            background-color: #653815;
+            border: none;
+            border-radius: 4px;
+            color: var(--color-text);
+            text-align: center;
+            text-transform: uppercase;
+        }
+
+        .save-load-buttons button:hover,
+        .save-load-buttons label:hover {
+            background-color: var(--color-header);
+        }
+
+    </style>
+</head>
+<body>
+<!-- Боковая панель -->
+<div class="sidebar">
+    <div >
+        <h2>Elden Ring Quests</h2>
+        <ul id="quest-list">
+            <!-- Список квестов будет заполнен динамически -->
+        </ul>
+    </div>
+
+    <!-- Кнопки сохранения и загрузки состояния -->
+    <!-- Кнопки сохранения и загрузки состояния -->
+    <div class="save-load-buttons">
+        <button id="save-progress">Сохранить прогресс</button>
+        <input type="file" id="load-file" accept=".json" hidden>
+        <label for="load-file" id="load-progress">Загрузить прогресс</label>
+    </div>
+</div>
+
+<!-- Основной контент -->
+<div class="content">
+    <!-- Поле поиска -->
+    <div class="search-container">
+        <input type="text" id="search-input" placeholder="Поиск...">
+    </div>
+
+    <!-- Список квестов -->
+    <div id="quests-container">
+        <!-- Квесты будут добавлены здесь -->
+    </div>
+</div>
+
+<script>
+    // Список квестов (пример с тремя квестами, добавьте остальные по аналогии)
+    const quests = [
+        {
+            id: 'roderikas-quest',
+            title: 'Квест Родерики',
+            content: `
+                        <p><input type="checkbox" id="roderikas-task"><strong>Как начать:</strong> Поговорите с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=163944">женщиной в красном плаще</a> и исчерпайте все варианты диалога.</p>
+						<strong>Шаги:</strong>
+						<ol>
+							<li><input type="checkbox" id="roderikas-task1"> Получите <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=164740">Куколку на память</a> в <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=164053">Замке Грозовой Завесы</a></li>
+							<li><input type="checkbox" id="roderikas-task2"> Верните <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=164740">Куколку на память</a> Родерике до того, как убьете Годрика Сторукого</li>
+							<li><input type="checkbox" id="roderikas-task3"> Идите в <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=165686">Крепость Круглого стола</a> и поговорите с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=170232">Родерика (2-е местоположение)</a></li>
+							<li><input type="checkbox" id="roderikas-task4"> Поговорите с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=167788">Кузнецом-мастером Хью</a></li>
+							<li><input type="checkbox" id="roderikas-task5"> Поговорите с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=170232">Родерика (2-е местоположение)</a> снова</li>
+							<li><input type="checkbox" id="roderikas-task6"> Снова поговорите с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=167788">Кузнецом-мастером Хью</a></li>
+							<li><input type="checkbox" id="roderikas-task7"> Уйдите, а затем вернитесь в <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=165686">Крепость Круглого стола</a>, и <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=170232">Родерика (2-е местоположение)</a>            теперь будет предлагать услуги настройки духов</li>
+							<li><input type="checkbox" id="roderikas-task8"> Вернитесь в место, где находилась <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=164740">Куколка на память</a>, чтобы найти <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=168288">Алый капюшон</a>            на её месте.</li>
+						</ol>
+						<p><strong>Добыча:</strong></p>
+						<ul>
+							<li><a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=168288">Алый капюшон</a></li>
+						</ul>
+                `,
+        },
+        {
+            id: 'sorceress-sellen-quest',
+            title: 'Квест Чародейки Селлены',
+            content: `
+                    <p><input type="checkbox" id="sorceress-sellen-quest"><strong>Как начать:</strong> Поговорите с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=164616">Чародейкой Селленой</a> под <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=164000">Руинами поселения</a>.</p>
+					<strong>Шаги:</strong>
+					<ol>
+						<li><input type="checkbox" id="sorceress-sellen-quest1"> Взаимодействуйте с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=170408">Первородным чародеем Азуром</a>, чтобы получить <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=167814">Комету Азура</a>.</li>
+						<li><input type="checkbox" id="sorceress-sellen-quest2"> Вернитесь, чтобы поговорить с Селленой.</li>
+						<li><input type="checkbox" id="sorceress-sellen-quest3"> Взаимодействуйте с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=169049">Мастером Лусатом</a>, чтобы получить <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=169050">Гибельные звёзды</a>.</li>
+						<li><input type="checkbox" id="sorceress-sellen-quest4"> Вернитесь, чтобы поговорить с Селленой.</li>
+						<li><input type="checkbox" id="sorceress-sellen-quest5"> Продвиньте <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=166648">Квест Ренни</a> до победы над <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=165444">Раданом Бичом Звёзд</a>.</li>
+						<li><input type="checkbox" id="sorceress-sellen-quest6"> Вернитесь, чтобы поговорить с Селленой.</li>
+						<li><input type="checkbox" id="sorceress-sellen-quest7"> Поговорите с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=165418">настоящей Селленой</a> в подземном погребе <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=163983">Руин Бича ведьм</a>,
+							чтобы получить <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=170410">Исток-камень Селлены</a>.</li>
+						<li><input type="checkbox" id="sorceress-sellen-quest8"> Исчерпайте диалог с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=168920">Смотрителем замка Джерреном</a> в <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=164397">Замке Рыжей Гривы</a>,
+							если вы ещё этого не сделали.</li>
+						<li><input type="checkbox" id="sorceress-sellen-quest9"> Исчерпайте диалог с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=169155">Смотрителем замка Джерреном</a> в <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=163983">Руинах Бича ведьм</a></li>
+						<li><input type="checkbox" id="sorceress-sellen-quest10"> Поместите Исток-камень в тело Селлены, в <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=170411">Скрытом погребе Селувиса</a>.</li>
+						<li><input type="checkbox" id="sorceress-sellen-quest11"> Поговорите с Джерреном, сначала <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=168920">здесь</a>, затем <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=169155">здесь</a>.</li>
+						<li><input type="checkbox" id="sorceress-sellen-quest12"> Идите в <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=164426">Великую библиотеку Райя Лукария</a>, затем выберите, помочь Селлене или бросить ей
+							вызов; смотрите оба варианта для наград квеста.</li>
+					</ol>
+                `,
+        },
+        {
+            id: 'irinas-quest',
+            title: 'Квест Ирины',
+            content: `
+                    <p><input type="checkbox" id="irinas-quest"><strong>Как начать:</strong> Поговорите с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=164637">Ириной</a> до тех пор, пока она не даст вам <em>Письмо Ирины</em></p>
+					<p><strong>Шаги:</strong></p>
+					<ol>
+						<li><input type="checkbox" id="irinas-quest1"> Поговорите с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=164637">Ириной</a>, и она даст вам Письмо Ирины, которое она просит вас доставить ее отцу <a target="_blank"
+								href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=164794">Эдгару</a> в <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=163951">Замок Морн</a>.</li>
+						<li><input type="checkbox" id="irinas-quest2"> <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=164794">Эдгар</a> скажет вам, что не может уйти, пока не убедится, что <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=164813">легендарный меч</a>            <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=163951">Замка Морн</a> не попадет в руки <strong>Бастардов</strong> первыми. Он также даст вам <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=164795">Жертвенную ветвь</a></li>
+						<li><input type="checkbox" id="irinas-quest3"> Вернитесь к местоположению <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=164637">Ирины</a>. Она будет мертва, с <strong>Железным Тесаком</strong>, воткнутым
+							в землю рядом с ней.</li>
+						<li><input type="checkbox" id="irinas-quest4"> Вернитесь в <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=163951">Замок Морн</a>, и на этот раз пройдите через него до самой южной точки, вниз к пляжу. Там
+							будет бой с боссом под названием <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=164812">Бастард Леонин</a>.</li>
+						<li><input type="checkbox" id="irinas-quest5"> Убийство <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=164812">Бастарда Леонина</a> даст вам <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=164813">Двуручник с гибридным клинком</a>.
+							Отнесите его обратно <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=164794">Эдгару</a> - он не возьмет его у вас, просто нужно доказать, что <strong>Бастарды</strong> не смогут его получить. Он благодарит
+							вас и говорит, что теперь, когда его долг выполнен, собирается идти видеть <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=164637">Ирину</a>.</li>
+						<li><input type="checkbox" id="irinas-quest6"> Вернитесь к <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=164637">Ирине</a> в третий раз, и вы найдете <strong>Эдгара</strong>, оплакивающего ее тело. Поговорите
+							с ним и исчерпайте его диалог.</li>
+						<li><input type="checkbox" id="irinas-quest7"> <strong>Эдгар</strong> появляется как враждебный NPC-захватчик под названием <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=166811">Эдгар Мститель</a>, найденный
+							у <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=166810">Лачуги Мстителя</a>.</li>
+					</ol>
+                `,
+        },
+        {
+            id: 'kenneth-haight-quest',
+            title: 'Квест Кеннета Хейта',
+            content: `
+                        <p><input type="checkbox" id="kenneth-haight-quest"><strong>Как начать:</strong> Поговорите с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=164853">Кеннетом Хейтом</a>, исчерпав все варианты диалога.</p>
+						<strong>Шаги:</strong>
+						<ol>
+							<li><input type="checkbox" id="kenneth-haight-quest1"> Очистите <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=164002">Форт Хейт</a> от врагов.</li>
+							<li><input type="checkbox" id="kenneth-haight-quest2"> Поговорите с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=164853">ним</a>, чтобы получить <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=166235">Кинжал из эрдстали</a>.</li>
+							<li><input type="checkbox" id="kenneth-haight-quest3"> Поговорите с ним в <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=165656">его новом местоположении</a>.</li>
+							<li><input type="checkbox" id="kenneth-haight-quest4"> Продвигайте <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=169124">квест Нефели</a> до тех пор, пока он не переедет в Тронный Зал <a target="_blank"
+									href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=171949">здесь</a></li>
+							<li><input type="checkbox" id="kenneth-haight-quest5"> Поговорите с ним в его <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=171948">новом местоположении</a> в Тронном Зале.</li>
+						</ol>
+						<p><strong>Примечание:</strong> <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=165122">Замогилье</a></p>
+                `,
+        },
+        {
+            id: 'bocs-quest',
+            title: 'Квест Бока',
+            content: `
+						<p><input type="checkbox" id="bocs-quest"><strong>Как начать:</strong> Освободите <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=164089">Бока</a> от его проклятия (ударьте по маленькому коричневому дереву)
+							и поговорите с ним.</p>
+						<strong>Шаги:</strong>
+						<ol>
+							<li><input type="checkbox" id="bocs-quest1"> Поговорите с ним, исчерпав все диалоги; вы получите 10x Гриб.</li>
+							<li><input type="checkbox" id="bocs-quest2"> Идите и поговорите с Боком в его <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=165130">новом местоположении</a> у места благодати <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=164030">Прибрежная пещера</a>.</li>
+							<li><input type="checkbox" id="bocs-quest3"> Получите <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=164459">Швейную иглу</a>.</li>
+							<li><input type="checkbox" id="bocs-quest4"> Дайте <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=165130">Боку (Прибрежная пещера)</a> Швейную иглу.</li>
+							<li><input type="checkbox" id="bocs-quest5"> Выполните следующее в любом порядке:
+								<ol>
+									<li><input type="checkbox" id="bocs-quest5_1"> Получите <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=165648">Золотую швейную иглу</a></li>
+									<li><input type="checkbox" id="bocs-quest5_2"> Купите один кусок изменяемой легендарной брони у <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=170553">Энии, чтицы Пальцев</a></li>
+									<li><input type="checkbox" id="bocs-quest5_3"> Исчерпайте диалоги <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=170554">Мелины</a> о Боке у места благодати <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=164179">Восточные ворота Райя Лукария</a>.</li>
+								</ol>
+							</li>
+							<li><input type="checkbox" id="bocs-quest6"> Дайте Боку Золотую швейную иглу.</li>
+							<li><input type="checkbox" id="bocs-quest7"> Исчерпайте его диалог, затем выберите, как завершить квест:
+								<ol>
+									<li><input type="checkbox" id="bocs-quest7_1"> Используйте <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=167215">Болтовню Пэйт "Ты прекрасен"</a> перед ним.</li>
+									<li><input type="checkbox" id="bocs-quest7_2"> Дайте ему Слезу личинки. Бок переместится <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=170555">сюда</a>, с ним нельзя будет взаимодействовать.</li>
+									<li><input type="checkbox" id="bocs-quest7_3"> Не делайте ничего из вышеперечисленного. Бок переместится <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=170555">сюда</a>, с ним нельзя будет взаимодействовать.</li>
+								</ol>
+							</li>
+						</ol>
+						<p><strong>Примечание:</strong> Бок периодически перемещается в зависимости от вашего прогресса в игре. Он будет находиться в самой дальней локации, которую вы открыли среди этих Мест благодати:</p>
+						<ol>
+							<li><a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=165682">Бок (Утесы, обращенные к озеру)</a></li>
+							<li><a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=167183">Бок (Восточные ворота Райя Лукария)</a></li>
+							<li><a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=168040">Бок (Перекресток Альтусского шоссе)</a></li>
+							<li><a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=168658">Бок (Восточный бастион столицы)</a></li>
+						</ol>
+						<p><a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=165122">Замогилье</a></p>
+                `,
+        },
+        {
+            id: 'blaidds-quest',
+            title: 'Квест Блайда',
+            content: `
+						<p><input type="checkbox" id="blaidds-quest"><strong>Как начать:</strong> Пройдите через <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=164003">Руины в Туманном лесу</a> до тех пор, пока не услышите волчий
+							вой.</p>
+						<strong>Шаги:</strong>
+						<ol>
+							<li><input type="checkbox" id="blaidds-quest1"> Поговорите с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=164446">Торговцем Кале</a> о вое; вы получите жест <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=167512">Щелчок пальцами</a>.</li>
+							<li><input type="checkbox" id="blaidds-quest2"> Вернитесь <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=165206">сюда</a> и используйте жест Щелчок пальцами; Блайд появится на месте. Поговорите с ним.</li>
+							<li><input type="checkbox" id="blaidds-quest3"> Призовите <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=170964">Блайда, Полуволка</a> для битвы с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=164486">Рыцарем-ищейкой Дарривилом</a>            в <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=163965">Узилище одинокой ищейки</a>. Поговорите с ним после боя.</li>
+							<li><input type="checkbox" id="blaidds-quest4"> Поговорите с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=165592">Мастером ковки Иджи</a>, чтобы разблокировать <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=170422">Карианский филигранный герб</a>            в его инвентаре.</li>
+							<li><input type="checkbox" id="blaidds-quest5"> Завершите <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=166648">Квест Ренни</a>.</li>
+							<li><input type="checkbox" id="blaidds-quest6"> Идите в <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=165878">Восхождение Ренни</a> и сражайтесь с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=168984">Блайдом, Полуволком</a>,
+								ставшим враждебным.</li>
+							<li><input type="checkbox" id="blaidds-quest7"> Поговорите с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=165592">Мастером ковки Иджи</a>, затем перезагрузите область.</li>
+						</ol>
+						<p><strong>Примечание:</strong> Шаги с 1 по 4 являются необязательными для завершения квеста Блайда. Однако, как только вы начнете квест Ренни, Блайд переместится, закрыв доступ к этим шагам и связанным с ними наградам.</p>
+                `,
+        },
+        {
+            id: 'sorcerer-thops-quest',
+            title: 'Квест Чародея Топса',
+            content: `
+						<p><input type="checkbox" id="sorcerer-thops-quest"><strong>Как начать:</strong> Поговорите с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=165263">Чародеем Топсом</a>, после того как разблокируете его торговый
+							инвентарь.</p>
+						<strong>Шаги:</strong>
+						<ol>
+							<li><input type="checkbox" id="sorcerer-thops-quest1"> Получите <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=165842">Волшебный ключ академии</a>, найденный в <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=164427">Академии Райи Лукарии</a>.</li>
+							<li><input type="checkbox" id="sorcerer-thops-quest2"> Отдайте ключ <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=165263">Топсу</a></li>
+							<li><input type="checkbox" id="sorcerer-thops-quest3"> Встретьтесь с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=165853">Топсом</a> в <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=164427">Академии Райи Лукарии</a></li>
+						</ol>
+						<ul>
+							<li><a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=165848">Лиурния</a></li>
+						</ul>
+                `,
+        },
+        {
+            id: 'patches_quest',
+            title: 'Квест Лоскутика',
+            content: `
+						<p><input type="checkbox" id="patches_quest"><strong>Как начать:</strong> Пощадить <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=164504">Лоскутика</a> во время его битвы с боссом и поговорить с ним после.</p>
+						<strong>Шаги:</strong>
+						<ol>
+							<li><input type="checkbox" id="patches_quest1"> Исчерпать все варианты диалога с Лоскутиком.</li>
+							<li><input type="checkbox" id="patches_quest2"> Активировать <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=165137">Ловушку Лоскутика</a>.</li>
+							<li><input type="checkbox" id="patches_quest3"> Вернуться в <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=164022">Грязную пещеру</a> и поговорить с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=165135">Лоскутиком</a>.</li>
+							<li><input type="checkbox" id="patches_quest4"> Пойти на Живописный остров (Scenic Isle) и поговорить с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=166734">Лоскутиком</a> там.</li>
+							<li><input type="checkbox" id="patches_quest5"> Пойти к Месту благодати Первого лагеря на горе Гельмир (First Mt. Gelmir Campsite) и пройти вверх к <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=169057">Лоскутику</a>.</li>
+							<li><input type="checkbox" id="patches_quest6"> Найти ярко окрашенные камни у обрыва и активировать кат-сцену.</li>
+							<li><input type="checkbox" id="patches_quest7"> Пойти в <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=164405">Вулканово поместье</a> и выполнить первые несколько заданий на убийство для них.</li>
+							<li><input type="checkbox" id="patches_quest8"> Поговорить с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=175962">Лоскутиком</a> и получить Письмо Лоскутику.</li>
+							<li><input type="checkbox" id="patches_quest9"> Пойти в <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=165513">Разрушенный утес</a> и победить <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=168974">Великого рогатого Трагота</a>.</li>
+							<li><input type="checkbox" id="patches_quest10"> Вернуться и поговорить с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=175962">Лоскутиком</a>.</li>
+							<li><input type="checkbox" id="patches_quest11"> Перезагрузить область и снова поговорить с Лоскутиком, который вознаградит вас <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=169020">Свечой с магмой</a>.</li>
+							<li><input type="checkbox" id="patches_quest12"> После убийства <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=167571">Райкарда, Господина Бласфемии</a>, поговорить с Лоскутиком в его <a target="_blank"
+									href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=175930">новом местоположении</a> и получить <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=175929">Кастаньеты танцовщицы</a>.</li>
+							<li><input type="checkbox" id="patches_quest13"> Пойти в <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=165135">исходное местоположение Лоскутика</a>, где он нападет на вас.</li>
+							<li><input type="checkbox" id="patches_quest14"> Снова пощадить его, и он вознаградит вас <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=176584">Приседанием Лоскутика</a> и продолжит предлагать свои услуги
+								торговца.</li>
+						</ol>
+                `,
+        },
+        {
+            id: 'rannis-quest',
+            title: 'Квест Ренни',
+            content: `
+						<p><input type="checkbox" id="rannis-quest_x"> <strong>Предупреждение:</strong> Начало этого квеста до того, как <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=168232">Чародей Рожер</a> поручит вам это во время
+							<a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=169102">Квеста Рожера</a>, сделает последний недоступным.<br>
+							<input type="checkbox" id="rannis-quest"> <strong>Как начать:</strong> Поговорите с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=166221">Ренни Колдуньей</a></p>
+						<strong>Шаги:</strong>
+						<ol>
+							<li><input type="checkbox" id="rannis-quest1"> Исчерпать все варианты диалога с Иджи, Блейдом и Селувисом у подножия башни</li>
+							<li><input type="checkbox" id="rannis-quest2"> Поговорить с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=167764">Блейдом</a> на реке Сиофра</li>
+							<li><input type="checkbox" id="rannis-quest3"> Поговорить с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=165877">Преподобным Селувисом</a>, чтобы получить Вступление Селувиса</li>
+							<li><input type="checkbox" id="rannis-quest4"> Поговорить с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=164616">Волшебницей Селлен</a></li>
+							<li><input type="checkbox" id="rannis-quest5"> Победить <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=165444">Радана, Пожирателя Звезд</a></li>
+							<li><input type="checkbox" id="rannis-quest6"> Войти в <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=167493">Нокрон, Вечный Город</a> и извлечь <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=170239">Клинок Убийцы Пальцев</a></li>
+							<li><input type="checkbox" id="rannis-quest7"> Отдать Клинок Убийцы Пальцев <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=166221">Ренни Колдунье</a> (это предотвратит завершение <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=169060">Квеста Селувиса</a>,
+								если он не завершен)</li>
+							<li><input type="checkbox" id="rannis-quest8"> Подняться на <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=164411">Божественную Башню Лиурнии</a> и извлечь <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=169305">Клеймо Смерти</a></li>
+							<li><input type="checkbox" id="rannis-quest9"> Идти к <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=167480">Основной Реке Айнсел</a> и подобрать Миниатюрную Ренни, сидящую на гробе</li>
+							<li><input type="checkbox" id="rannis-quest10"> Отдохнуть у Места Благодати и поговорить с Миниатюрной Ренни (возможно, придется активировать вариант диалога несколько раз, прежде чем она ответит)</li>
+							<li><input type="checkbox" id="rannis-quest11"> Победить <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=168546">Зловещую Тень</a>, чтобы получить <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=176421">Выброшенный Ключ Дворца</a></li>
+							<li><input type="checkbox" id="rannis-quest12"> Идти в <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=164426">Великую Библиотеку Райя Лукария</a> и извлечь <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=177447">Кольцо Темной Луны</a></li>
+							<li><input type="checkbox" id="rannis-quest13"> Вернуться к реке Айнсел и пересечь Озеро Гнили (<a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=166672">Огонь, очисти меня</a> очень помогает в этом)</li>
+							<li><input type="checkbox" id="rannis-quest14"> Войти в <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=168579">Портал к Астелу, Рожденному Пустотой</a></li>
+							<li><input type="checkbox" id="rannis-quest15"> Победить <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=167488">Астела, Рожденного Пустотой</a> и извлечь <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=170488">Воспоминание о Рожденном</a></li>
+							<li><input type="checkbox" id="rannis-quest16"> Взять <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=168601">лифт</a> на север вверх к <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=166807">Алтарю Лунного Света</a>            </li>
+							<li><input type="checkbox" id="rannis-quest17"> Войти в <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=165510">Собор Манус Селлус</a></li>
+							<li><input type="checkbox" id="rannis-quest18"> Использовать <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=177447">Кольцо Темной Луны</a> с Миниатюрной Ренни и извлечь <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=167891">Великий Меч Темной Луны</a></li>
+						</ol>
+                `,
+        },
+        {
+            id: 'ryas-quest',
+            title: 'Квест Райи',
+            content: `
+						<p><input type="checkbox" id="ryas-quest"><strong>Как начать:</strong> Поговорите с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=166413">Райей</a></p>
+						<strong>Шаги:</strong>
+						<ol>
+							<li><input type="checkbox" id="ryas-quest1"> Идите в <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=166185">Лачугу любителя креветок</a> и поговорите с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=166187">Чёрным стражем</a></li>
+							<li><input type="checkbox" id="ryas-quest2"> Купите <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=177671">Ожерелье Райи</a> за 1000 рун (можно убить <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=166187">Чёрного стража</a>,
+								но это не рекомендуется, так как у него своя <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=177672">сюжетная линия</a>)</li>
+							<li><input type="checkbox" id="ryas-quest3"> Верните <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=177671">ожерелье</a> Райе, чтобы получить <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=166812">Приглашение в Вулканово поместье</a></li>
+							<li><input type="checkbox" id="ryas-quest4"> Поговорите с Райей в её новом местоположении либо <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=169808">рядом с Великим подъёмником Дектуса</a>, либо <a target="_blank"
+									href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=176450">в Руинах Люкса</a></li>
+							<li><input type="checkbox" id="ryas-quest5"> Получите доступ к <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=164405">Вулкановому поместью</a> и начните <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=178114">Квест Таниф</a></li>
+							<li><input type="checkbox" id="ryas-quest6"> Поговорите с Райей в её <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=178115">новом местоположении</a></li>
+							<li><input type="checkbox" id="ryas-quest7"> Продвиньте <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=178114">Квест Таниф</a> до момента после первого убийства</li>
+							<li><input type="checkbox" id="ryas-quest8"> Поговорите с Райей (Зораяс) в её <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=169809">новом местоположении</a></li>
+							<li><input type="checkbox" id="ryas-quest9"> Продвиньте <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=178114">Квест Таниф</a> до момента после второго убийства</li>
+							<li><input type="checkbox" id="ryas-quest10"> Поговорите с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=169809">Райей</a> о секретном проходе</li>
+							<li><input type="checkbox" id="ryas-quest11"> Используйте секретный проход, чтобы добраться до места благодати Церковь Городской тюрьмы и открыть двери церкви за ней</li>
+							<li><input type="checkbox" id="ryas-quest12"> Вернитесь к <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=169809">Райе</a></li>
+							<li><input type="checkbox" id="ryas-quest13"> Идите в <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=167423">Храм Эйглея</a> и победите <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=168177">Благородного Годскина</a></li>
+							<li><input type="checkbox" id="ryas-quest14"> Возьмите <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=168772">Зародыш Змеи</a> и верните его <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=169809">Райе</a></li>
+							<li><input type="checkbox" id="ryas-quest15"><em>Необязательно</em> - Перезагрузите область, затем поговорите с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=167573">Таниф</a> о Райе и получите <a target="_blank"
+									href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=178118">Тоник забвения</a></li>
+							<li><input type="checkbox" id="ryas-quest16"> Поговорите с Райей в её <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=178116">новом местоположении</a></li>
+							<li><input type="checkbox" id="ryas-quest17"> Сделайте ОДНО из следующего:
+								<ol>
+									<li><input type="checkbox" id="ryas-quest17_1"> Убейте Райю. Это завершает её квест, и она оставляет после себя <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=176504">Горе Даэдикара</a></li>
+									<li><input type="checkbox" id="ryas-quest17_2"> Дайте Райе <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=178118">Тоник забвения</a>. Это заставит её уснуть</li>
+									<li><input type="checkbox" id="ryas-quest17_3"> Пощадите Райю и не давайте ей <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=178118">Тоник</a>. Вернитесь в <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=178116">ее местоположение</a>                    позже после победы над <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=167571">Райкардом, Господином Бласфемии</a>, чтобы найти <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=176504">Горе Даэдикара</a>                    и <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=178117">Письмо Зораяс</a></li>
+								</ol>
+							</li>
+						</ol>
+                `,
+        },
+        {
+            id: 'gowrys-request',
+            title: 'Запрос Гоури',
+            content: `
+						<p><input type="checkbox" id="gowrys-request"><strong>Как начать:</strong> Исчерпать все варианты диалога с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=166841">Гоури</a></p>
+						<strong>Шаги:</strong>
+						<ol>
+							<li><input type="checkbox" id="gowrys-request1"> Победить <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=166073">Командира О'Нила</a></li>
+							<li><input type="checkbox" id="gowrys-request2"> Забрать <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=167903">Иглу из чистого золота</a> у него и доставить её <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=166841">Гоури</a></li>
+							<li><input type="checkbox" id="gowrys-request3"> Перезагрузить область, затем поговорить с Гоури, чтобы получить Отремонтированную иглу</li>
+							<li><input type="checkbox" id="gowrys-request4"> Идти в <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=165583">Храм чумы</a> и дать Иглу <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=167228">Миллисенте</a></li>
+							<li><input type="checkbox" id="gowrys-request5"> Перезагрузить область и снова поговорить с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=167228">Миллисентой</a>, чтобы получить <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=166727">Наследие Протезоносителя</a></li>
+							<li><input type="checkbox" id="gowrys-request6"> Идти в <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=164387">Лачугу Гоури</a> и поговорить с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=167695">Миллисентой</a>            там</li>
+							<li><input type="checkbox" id="gowrys-request7"> После продвижения в квесте Миллисенты, купить <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=169253">Потоки паразитов</a> у <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=166841">Гоури</a>.
+								Это вызовет новый диалог о Воплощениях гнили.</li>
+							<li><input type="checkbox" id="gowrys-request8"> После завершения разговора, в качестве награды вы получите жест Отчаянная молитва.</li>
+						</ol>
+                `,
+        },
+        {
+            id: 'd-quest',
+            title: 'Квест Ди',
+            content: `
+						<p><input type="checkbox" id="d-quest"><strong>Как начать:</strong> Поговорите с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=164536">Ди, охотником на мёртвых</a>.</p>
+						<strong>Шаги:</strong>
+						<ol>
+							<li><input type="checkbox" id="d-quest1"> Победите <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=164859">Лодочника Тибия</a> в <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=164017">Деревне у вод призыва</a>.</li>
+							<li><input type="checkbox" id="d-quest2"> Поговорите с ним в его <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=165684">новом местоположении</a>.</li>
+							<li><input type="checkbox" id="d-quest3"> Посетите <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=165617">Гурранка, жреца-зверя</a> и дайте ему хотя бы 1 Корень смерти.</li>
+							<li><input type="checkbox" id="d-quest4"> Поговорите с Ди в его <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=167782">новом местоположении</a>, в <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=165686">Крепости Круглого стола</a>.</li>
+							<li><input type="checkbox" id="d-quest5"> Продвиньте <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=170981">квест Фии</a>, пока не получите <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=170980">Старинный кинжал</a>.</li>
+							<li><input type="checkbox" id="d-quest6"> Верните <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=170980">Старинный кинжал</a> <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=167782">Ди</a>.</li>
+							<li><input type="checkbox" id="d-quest7"> Перезагрузите область, затем вернитесь туда, где была Фия, чтобы получить <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=170979">Комплект Близнецов</a> и <a target="_blank"
+									href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=170982">Колокольную сферу Ди</a>.</li>
+							<li><input type="checkbox" id="d-quest8"> По желанию: Поговорите с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=168405">братом-близнецом Ди</a>, и дайте ему Комплект Близнецов.</li>
+							<li><input type="checkbox" id="d-quest9"> Если вы дали доспехи брату Ди, после завершения <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=170981">квеста Фии</a>, вернитесь к Фии в <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=167605">Низовье Глубокого Корня</a>,
+								чтобы получить руну. Поговорите с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=170983">братом Ди</a>, который теперь находится здесь.</li>
+						</ol>
+						<p><strong>Добыча:</strong></p>
+						<ul>
+							<li><a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=168994">Комплект Близнецов</a></li>
+							<li><a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=170982">Колокольная сфера Ди</a></li>
+							<li><a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=177162">Целая руна принца Смерти</a></li>
+						</ul>
+                `,
+        },
+        {
+            id: 'kvest-rytsarya-diallosa',
+            title: 'Квест Рыцаря Диаллоса',
+            content: `
+						<p><input type="checkbox" id="kvest-rytsarya-diallosa"><strong>Как начать:</strong> Поговорите с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=167783">Диаллосом</a> в <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=165686">Крепости Круглого стола</a></p>
+						<strong>Шаги:</strong>
+						<ol>
+							<li><input type="checkbox" id="kvest-rytsarya-diallosa1"> После разговора с Диаллосом в Крепости Круглого стола, вы найдете его на его <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=167227">втором местоположении</a>            к северу и немного к западу от места благодати Предместья академии в северной Лиурнии, на затонувшей крыше.<br> Диаллос стоит на уровне земли к западу от благодати на северной окраине руин города. Если смотреть на карту, он находится почти
+								точно на крайнем правом кончике иконки Предместья академии.</li>
+							<li><input type="checkbox" id="kvest-rytsarya-diallosa2"> Затем он снова будет в Крепости Круглого стола. Исчерпайте его диалог, и затем он будет в <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=164405">Вулкановом поместье</a>,
+								в гостиной, решив присоединиться к организации.<br> У Диаллоса появится новый диалог, когда персонаж продвинется через Вулканово поместье. Если сюжетная линия Вулканова поместья завершена, Диаллос исчезнет.</li>
+							<li><input type="checkbox" id="kvest-rytsarya-diallosa3"> После выполнения второго письма из Вулканова поместья, он покинет поместье и переедет в <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=166209">Кувшинград</a>.</li>
+							<li><input type="checkbox" id="kvest-rytsarya-diallosa4"> После продвижения по сюжетной линии Кувшинграда, он появится в одной из хижин, ухаживая за маленьким кувшином.<br> Если у вас возникли проблемы с продолжением сюжетной линии Кувшинграда, попробуйте
+								поговорить с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=170335">Джар-Бэйрном</a> и исчерпать все варианты диалога, а затем отдохнуть у ближайшей благодати. Возможно, придется сделать это несколько
+								раз.</li>
+							<li><input type="checkbox" id="kvest-rytsarya-diallosa5"> После встречи с ним в <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=166209">Кувшинграде</a>, дайте пройти некоторому времени. Как только пройдет
+								достаточно времени, и вы сможете снова поговорить с Диаллосом. После исчерпания диалога с ним и Джар-Бэйрном вы можете отдохнуть, чтобы продвинуть квест.</li>
+							<li><input type="checkbox" id="kvest-rytsarya-diallosa6"> После того как пройдет достаточно времени, <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=166209">Кувшинград</a> будет атакован, и Диаллос будет
+								ранен. Вы можете поговорить с ним, и он спросит, удалось ли ему защитить кувшины, на что вы можете ответить, что ему удалось или не удалось.<br> Он умрет вскоре после этого. После перезагрузки области, Джар-Бэйрн подойдет к Диаллосу, "поглощая"
+								его останки для своей силы.</li>
+							<li><input type="checkbox" id="kvest-rytsarya-diallosa7"> После некоторого времени тело Диаллоса исчезнет, оставив после себя Маску Диаллоса, Хлыст Хослоу и Руну Нумена, где его встретили в последний раз.</li>
+						</ol>
+                `,
+        },
+        {
+            id: 'seluvis_quest_x',
+            title: 'Квест Профессора Селувиса',
+            content: `
+						<p><input type="checkbox" id="seluvis_quest_x"><strong>Требования:</strong> Начните <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=166648">Квест Ренни Колдуньи</a> и продвигайтесь, пока не поговорите с призрачным
+							Селувисом.</p>
+						<p><input type="checkbox" id="seluvis_quest_z"><strong>Предупреждение:</strong> Давая зелье кому-либо, кроме <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=169061">Гидеона Офнира</a>, вы закончите соответствующую
+							линию квестов этого персонажа.</p>
+						<p><input type="checkbox" id="seluvis_quest"><strong>Как начать:</strong> Поговорите с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=165877">Профессором Селувисом</a> в его <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=165495">башне</a>        и исчерпайте все варианты диалога.</p>
+						<strong>Шаги:</strong>
+						<ol>
+							<li>Есть 3 основных варианта использования зелья:
+								<ol>
+									<li><input type="checkbox" id="seluvis_quest_a"> Дать зелье Нефели Лукс. Её <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=169124">линия квестов</a> закончится. Продолжите эту линию квестов, чтобы
+										получить её как куклу.</li>
+									<li><input type="checkbox" id="seluvis_quest_b"> Вы можете дать зелье <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=168118">Милосу (Пожиратель Грязи)</a>, если его <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=169072">линия квестов</a>                    продвинута до того момента, когда он заперт в кресле. Его линия квестов закончится. Продолжите эту линию квестов, чтобы получить его как куклу.</li>
+									<li><input type="checkbox" id="seluvis_quest_c"> Расскажите <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=169061">Гидеону Офниру</a> о зелье и дайте его ему, чтобы он уничтожил его. Никакие линии
+										квестов не закончатся. Продолжите эту линию квестов, чтобы получить обычную куклу.
+										<ol>
+											<li><input type="checkbox" id="seluvis_quest1"> Идите в <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=165686">Крепость Круглого стола</a> и поговорите с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=169061">Гидеоном Офниром</a>                            о Нефели Лукс</li>
+											<li><input type="checkbox" id="seluvis_quest2"> Если еще не сделали этого - продвиньте <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=169124">Квест Нефели Лукс</a> до победы над <a target="_blank"
+													href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=166426">Убийцей знамений</a></li>
+											<li><input type="checkbox" id="seluvis_quest3"> Поговорите с Нефели Лукс в <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=165686">Крепости Круглого стола</a></li>
+											<li><input type="checkbox" id="seluvis_quest4"> Поговорите с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=169061">Гидеоном Офниром</a> о Нефели Лукс</li>
+											<li><input type="checkbox" id="seluvis_quest5"> Дайте зелье <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=169061">Гидеону Офниру</a> ИЛИ <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=171950">Нефели Лукс</a>                            ИЛИ <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=168118">Пожирателю Грязи</a></li>
+											<li><input type="checkbox" id="seluvis_quest6"> Вернитесь к <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=165877">Профессору Селувису</a> за наградой</li>
+											<li><input type="checkbox" id="seluvis_quest7"> Найдите и исследуйте все в <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=168240">Скрытом Подвале Селувиса</a></li>
+											<li><input type="checkbox" id="seluvis_quest8"> Вернитесь снова к <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=165877">Профессору Селувису</a>, который продаст вам куклу.</li>
+											<li><input type="checkbox" id="seluvis_quest9"> Купите все куклы и любые заклинания, которые продает <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=165877">Профессор Селувис</a>. Затем спросите
+												его "О Замысле".</li>
+											<li><input type="checkbox" id="seluvis_quest10"> Получите <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=167876">Янтарный Звездный Осколок</a> и верните его <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=165877">Селувису</a></li>
+											<li><input type="checkbox" id="seluvis_quest11"> Исчерпайте его варианты диалога, и он наградит вас <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=169028">Оберегом Магического Скорпиона</a></li>
+											<li><input type="checkbox" id="seluvis_quest12"> Отдохните, перезагрузите область и снова поговорите с ним, чтобы получить <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=177296">Янтарный Напиток</a></li>
+											<li><input type="checkbox" id="seluvis_quest13"> Дайте Напиток <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=166221">Ренни Колдунье</a>. Она будет возмущена и отвергнет вас (это закончит
+												её <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=166648">линию квестов</a>, пока вы не искупите себя, предложив Небесную Росу в <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=165501">Церкви Клятв</a>)</li>
+											<li><input type="checkbox" id="seluvis_quest14"> Вернитесь к <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=165877">Профессору Селувису</a>, чтобы найти <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=169026">Подшипник Колокола Селувиса</a>                            и <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=168975">Набор Профессора</a></li>
+										</ol>
+									</li>
+								</ol>
+							</li>
+						</ol>
+						<ul>
+							<li><a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=165848">Лиурния</a></li>
+						</ul>
+                `,
+        },
+        {
+            id: 'dung-eaters-quest',
+            title: 'Квест Поедателя Отбросов',
+            content: `
+						<p><input type="checkbox" id="dung-eaters-quest_x"><strong>Требования:</strong> Получить доступ к <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=164582">Лейнделл, столица королевства</a></p>
+						<p><input type="checkbox" id="dung-eaters-quest"><strong>Как начать:</strong> Поговорите с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=168231">Милосом (Поедатель Отбросов)</a> в <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=165686">Крепости Круглого стола</a></p>
+						<strong>Шаги:</strong>
+						<ol>
+							<li><input type="checkbox" id="dung-eaters-quest1"> Дайте ему Проклятие посева, и взамен он даст вам <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=169062">Ключ от канализационной тюрьмы</a>, который можно
+								использовать, чтобы открыть <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=168119">Вход в канализацию</a></li>
+							<li><input type="checkbox" id="dung-eaters-quest2"> Идите и найдите <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=168118">его в канализации под Лейнделлом</a>. Когда он спросит вас, кто вы, выберите "Покинь
+								свою тюрьму!"</li>
+							<li><input type="checkbox" id="dung-eaters-quest3"> Вернитесь в Крепость Круглого стола. <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=168231">Поедатель Отбросов</a> оставит сообщение с просьбой <a target="_blank"
+									href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=169012">сразиться с ним снаружи Лейнделла</a>.
+								<ul>
+									<li><input type="checkbox" id="dung-eaters-quest3_1"> Убедитесь, что вы выполнили квест Чёрного стража, так как это даст вам дополнительное Проклятие посева.</li>
+								</ul>
+							</li>
+							<li><input type="checkbox" id="dung-eaters-quest4"> После победы над ним, вернитесь в Крепость Круглого стола и поговорите с ним снова. Он попросит вас принести его <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=168118">тело в канализации</a>            5 Проклятий посева.</li>
+							<li><input type="checkbox" id="dung-eaters-quest5"> После доставки Проклятий посева он вознаградит вас Исправляющей руной Проклятого</li>
+						</ol>
+                `,
+        },
+        {
+            id: 'rogiers-quest',
+            title: 'Квест Роже',
+            content: `
+						<p><input type="checkbox" id="rogiers-quest"><strong>Как начать:</strong> Поговорите с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=164686">Чародеем Рожером</a> в церкви в Замке Грозовой Завесы.</p>
+						<strong>Шаги:</strong>
+						<ol>
+							<li><input type="checkbox" id="rogiers-quest1"> Победите <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=164052">Годрика Сторукого</a></li>
+							<li><input type="checkbox" id="rogiers-quest2"> Поговорите с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=168232">Рожером на его новом местоположении</a>, и он даст вам <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=174929">Рапиру Роже</a></li>
+							<li><input type="checkbox" id="rogiers-quest3"> Идите в <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=164053">Замок Грозовой Завесы</a>, в область, где появляется <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=165164">Корневое Чудовище</a>,
+								и осмотрите кровавое пятно Роже и гниющее лицо</li>
+							<li><input type="checkbox" id="rogiers-quest4"> Вернитесь к <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=168232">Чародею Рожеру</a> и исчерпайте все варианты диалога</li>
+							<li><input type="checkbox" id="rogiers-quest5"> Исчерпайте все варианты диалога с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=167503">Фией, спутницей мёртвых</a></li>
+							<li><input type="checkbox" id="rogiers-quest6"> Идите в <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=166481">Катакомбы Чёрного ножа</a> и победите <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=166482">Убийцу из Чёрных ножей</a>,
+								чтобы получить <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=166486">Отпечаток Чёрного ножа</a></li>
+							<li><input type="checkbox" id="rogiers-quest7"> Поговорите с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=168232">Чародеем Рожером</a></li>
+							<li><input type="checkbox" id="rogiers-quest8"> Идите в <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=165878">Вознесение Ренни</a> и поговорите с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=166221">Ренни Колдуньей</a>,
+								которая отошлет вас</li>
+							<li><input type="checkbox" id="rogiers-quest9"> Поговорите с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=168232">Чародеем Рожером</a>, который скажет вам служить Ренни</li>
+							<li><input type="checkbox" id="rogiers-quest10"> Вернитесь к <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=166221">Ренни Колдунье</a> и начните её цепочку заданий</li>
+							<li><input type="checkbox" id="rogiers-quest11"> Посетите <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=168232">Чародея Рожера</a> ещё раз и исчерпайте все варианты диалога</li>
+							<li><input type="checkbox" id="rogiers-quest12"> Подождите некоторое время, и вы найдёте <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=168232">Рожера</a> мёртвым в его кресле</li>
+							<li><input type="checkbox" id="rogiers-quest13"> Обыщите его тело, чтобы получить <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=177446">Набор Заклинателя</a> и <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=177445">Подшипник колокола Роже</a></li>
+						</ol>
+						<p><strong>Примечание:</strong> Начало <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=166648">квеста Ренни</a> до правильного шага приведёт к завершению этого квеста.</p>
+                `,
+        },
+        {
+            id: 'nephelis-quest',
+            title: 'Квест Нефели',
+            content: `
+						<p><input type="checkbox" id="nephelis-quest"><strong>Как начать:</strong> Поговорите с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=164904">Нефели Лукс</a> в <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=164053">Замке Грозовой Завесы</a></p>
+						<strong>Шаги:</strong>
+						<strong>Шаги:</strong>
+						<ol>
+							<li><input type="checkbox" id="nephelis-quest1"> Победите <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=164421">Годрика Сторукого</a> (вызов Нефели необязателен)</li>
+							<li><input type="checkbox" id="nephelis-quest2"> Поговорите с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=169061">Гидеоном Офниром</a></li>
+							<li><input type="checkbox" id="nephelis-quest3"> Поговорите с ней <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=171950">в Крепости Круглого стола</a>, чтобы получить <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=171951">Талисман арсенала</a></li>
+							<li><input type="checkbox" id="nephelis-quest4"> Поговорите с ней в <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=166240">Деревне альбиноров</a></li>
+							<li><input type="checkbox" id="nephelis-quest5"> Победите близлежащего <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=166426">Убийцу знамений</a></li>
+							<li><input type="checkbox" id="nephelis-quest6"> Поговорите с ней в её новом местоположении <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=171952">в Крепости Круглого стола</a></li>
+							<li><input type="checkbox" id="nephelis-quest7"> Поговорите с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=169061">Гидеоном Офниром</a></li>
+							<li><input type="checkbox" id="nephelis-quest8"> Поговорите с Нефели ещё раз</li>
+							<li><input type="checkbox" id="nephelis-quest9"> Идите в <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=175484">Часовню ожидания</a> и заберите <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=167207">Короля штормовых ястребов</a></li>
+							<li><input type="checkbox" id="nephelis-quest10"> Верните <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=167207">Короля штормовых ястребов</a> <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=171952">Нефели</a></li>
+							<li><input type="checkbox" id="nephelis-quest11"> Продвиньте <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=164854">Квест Кеннета Хейта</a> до тех пор, пока вы не поговорите с ним в <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=164002">Форте Хейт</a>.</li>
+							<li><input type="checkbox" id="nephelis-quest12"> Убедитесь, что следующие враги побеждены -
+								<ol>
+									<li><input type="checkbox" id="nephelis-quest12_1"> <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=167374">Морготт, Король Оменов</a></li>
+									<li><input type="checkbox" id="nephelis-quest12_2"> <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=168546">Зловещая тень</a> </li>
+								</ol>
+							</li>
+							<li><input type="checkbox" id="nephelis-quest13"> Отдохните в месте благодати <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=164145">Утёсов, обращённых к озеру</a></li>
+							<li><input type="checkbox" id="nephelis-quest14"> Встретьтесь с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=171949">Нефели</a> и <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=171948">Кеннетом Хейтом</a>            в Тронном зале и исчерпайте все варианты диалога</li>
+						</ol>
+						<p><strong>Предупреждение:</strong> Давая <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=165877">Зелье Селувиса</a> Нефели в любое время приведёт к завершению её квестовой линии.</p>
+						<p><strong>Примечание:</strong> Если квест Селувиса недоступен, этот квест будет продвигаться так, как если бы вы передали зелье Гидеону.</p>
+                `,
+        },
+        {
+            id: 'hyetta-quest',
+            title: 'Квест Хёйтты',
+            content: `
+						<p><input type="checkbox" id="hyetta-quest_x"> <strong>Требования:</strong> Завершить <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=164638">квест Ирины</a></p>
+						<p><input type="checkbox" id="hyetta-quest"> <strong>Как начать:</strong> Поговорите с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=166502">Хёйттой</a> у места благодати <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=164145">Утесов, обращённых к озеру</a>.</p>
+						<strong>Шаги:</strong>
+						<ol>
+							<li><input type="checkbox" id="hyetta-quest1"> Получите <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=165154">Виноград Шабрири</a> из тронного зала <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=164052">Годрика Сторукого</a>.
+								</li>
+							<li><input type="checkbox" id="hyetta-quest2"> Отдайте его <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=166502">Хёйтте (Первое местоположение)</a></li>
+							<li><input type="checkbox" id="hyetta-quest3"> Получите ещё один <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=166632">Виноград Шабрири</a> из <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=164172">Очищенных руин</a>.</li>
+							<li><input type="checkbox" id="hyetta-quest4"> Отдайте его <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=166503">Хёйтте (Второе местоположение)</a></li>
+							<li><input type="checkbox" id="hyetta-quest5"> Идите к <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=166810">Хижине Мстителя</a> и отдохните у ближайшего места благодати.</li>
+							<li><input type="checkbox" id="hyetta-quest6"> Вскоре после пробуждения вас атакует <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=166811">Эдгар Мститель</a>. </li>
+							<li><input type="checkbox" id="hyetta-quest7"> Убейте его и заберите <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=168222">Виноград Шабрири</a>.</li>
+							<li><input type="checkbox" id="hyetta-quest8"> Отдайте Виноград <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=166642">Хёйтте (Третье местоположение)</a></li>
+							<li><input type="checkbox" id="hyetta-quest9"> Идите в <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=165517">Храм сдержанности</a>.</li>
+							<li><input type="checkbox" id="hyetta-quest10"> Вскоре после прибытия вас атакует <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=167188">Вик Гниющий Отпечаток</a>. Убейте его и заберите <a target="_blank"
+									href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=168230">Отпечаток Винограда</a>.</li>
+							<li><input type="checkbox" id="hyetta-quest11"> Идите в <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=164403">Храм Беллума</a> и отдайте ей Отпечаток Винограда</li>
+							<li><input type="checkbox" id="hyetta-quest12"> Идите в <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=168677">Проскрипцию Яростного Пламени</a> (убейте <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=168657">Мога, Зловещего</a>,
+								чтобы открыть это Место благодати).</li>
+							<li><input type="checkbox" id="hyetta-quest13"> Ударьте по святилищу за Местом благодати, чтобы открыть скрытый проход. </li>
+							<li><input type="checkbox" id="hyetta-quest14"> Пройдите по проходу и спуститесь вниз до самого конца, пока не найдёте <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=177232">Хёйтту (Пятое местоположение)</a>.
+								Исчерпайте весь диалог с ней.</li>
+							<li><input type="checkbox" id="hyetta-quest15"> Войдите через Дверь Пламени.</li>
+							<li><input type="checkbox" id="hyetta-quest16"> Поговорите с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=177232">Хёйттой (Пятое местоположение)</a> ещё раз, чтобы завершить этот квест.</li>
+						</ol>
+						<p><strong>Добыча:</strong> </p>
+						<ul>
+							<li><a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=177029">Печать Яростного Пламени</a></li>
+							<li><a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=165848">Лиурния</a></li>
+						</ul>
+                `,
+        },
+        {
+            id: 'alexander-iron-fists-quest',
+            title: 'Квест Александра, Железного кулака',
+            content: `
+						<p><input type="checkbox" id="alexander-iron-fists-quest"><strong>Как начать:</strong> Поговорите с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=164117">Александром, Железным кулаком</a>.</p>
+						<strong>Шаги:</strong>
+						<ol>
+							<li><input type="checkbox" id="alexander-iron-fists-quest1"> Ударьте его несколько раз оружием; это поможет его освободить.</li>
+							<li><input type="checkbox" id="alexander-iron-fists-quest2"> Поговорите с ним, чтобы получить <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=164118">Ликование</a> и некоторое количество <a target="_blank"
+									href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=164119">Изысканного мяса</a>.</li>
+							<li><input type="checkbox" id="alexander-iron-fists-quest3"> Поговорите с ним в его <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=165129">новом местоположении</a> в <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=164414">Туннеле Гаэля</a>.</li>
+							<li><input type="checkbox" id="alexander-iron-fists-quest4"> Продвигайте <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=166648">квест Ренни</a> до тех пор, пока вы не узнаете о <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=165444">Радане Биче Звёзд</a>            от <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=164616">Чародейки Селлены</a>.</li>
+							<li><input type="checkbox" id="alexander-iron-fists-quest5"> Поговорите с ним в его <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=168095">новом местоположении</a> в <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=164397">Замке Рыжей Гривы</a>.</li>
+							<li><input type="checkbox" id="alexander-iron-fists-quest6"> Победите <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=165444">Радана Бича Звёзд</a>.</li>
+							<li><input type="checkbox" id="alexander-iron-fists-quest7"> Поговорите с ним в Лиурнии Озёр в его <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=168542">новом местоположении</a> и используйте масляную бомбу,
+								чтобы освободить его. Этот шаг можно пропустить, перейдя к его следующему местоположению.</li>
+							<li><input type="checkbox" id="alexander-iron-fists-quest8"> Поговорите с ним в его <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=167816">новом местоположении</a> на <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=167816">Вулкане Гельмир</a>.</li>
+							<li><input type="checkbox" id="alexander-iron-fists-quest9"> Александр теперь появится в <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=167132">Разрушающемся Фарум-Азуле</a> как <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=169811">босс</a>;
+								победите его, чтобы завершить квест.</li>
+						</ol>
+                `,
+        },
+        {
+            id: 'yuras_quest',
+            title: 'Квест Юры',
+            content: `
+						<p><input type="checkbox" id="yuras_quest"><strong>Как начать:</strong> Поговорите с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=164632">Юрой, охотником на Окровавленных пальцев</a></p>
+						<strong>Шаги:</strong>
+						<ol>
+							<li><input type="checkbox" id="yuras_quest1"> Поговорите с ним; он расскажет вам о близлежащем драконе.</li>
+							<li><input type="checkbox" id="yuras_quest2"> Победите <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=164484">Эгхила, крылатого дракона</a>; после этого Юра скажет вам местоположение <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=163996">Храма драконьего причастия</a>.</li>
+							<li><input type="checkbox" id="yuras_quest3"> Подойдите к <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=164022">Грязной пещере</a>, чтобы спровоцировать вторжение <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=164492">Нериюса, Окровавленного пальца</a>.
+								Победите его при помощи Юры.</li>
+							<li><input type="checkbox" id="yuras_quest4"> Поговорите с ним в <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=165104">его новом местоположении</a>.</li>
+							<li><input type="checkbox" id="yuras_quest5"> Взаимодействуйте с его <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=166758">знаком призыва</a>, чтобы вторгнуться в его мир.</li>
+							<li><input type="checkbox" id="yuras_quest6"> Победите <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=166731">Ассасина Окровавленного пальца</a>, затем поговорите с ним.</li>
+							<li><input type="checkbox" id="yuras_quest7"> Поговорите с ним в <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=168052">его новом местоположении</a>, в <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=165478">Второй церкви Марики</a>.</li>
+							<li><input type="checkbox" id="yuras_quest8"> Победите <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=168051">Элеонору, Фиолетовый Окровавленный палец</a>.</li>
+							<li><input type="checkbox" id="yuras_quest9"> Поговорите с его одержимым телом в <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=169813">его последнем местоположении</a>.</li>
+						</ol>
+                `,
+        },
+        {
+            id: 'fias-quest',
+            title: 'Квест Фии',
+            content: `
+						<p><input type="checkbox" id="fias-quest_x"><strong>Требования:</strong> Победить <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=164421">Годрика Сторукого</a></p>
+						<p><input type="checkbox" id="fias-quest"><strong>Как начать:</strong> Поговорите с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=167503">Фией, спутницей мёртвых</a></p>
+						<strong>Шаги:</strong>
+						<ol>
+							<li><input type="checkbox" id="fias-quest1"> Продвинуть <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=169102">квест Роже</a> до момента, когда вы дадите <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=166486">Отметку от Чёрного Ножа</a>            Роже</li>
+							<li><input type="checkbox" id="fias-quest2"> Поговорите с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=167503">Фией</a>, перезагрузите область, затем поговорите с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=168232">Чародеем Рожером</a></li>
+							<li><input type="checkbox" id="fias-quest3"> Отправьтесь на <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=166995">Плато Альтус</a> и поговорите с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=177448">Фией</a>            возле <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=164180">Великого подъёмника Дектуса</a></li>
+							<li><input type="checkbox" id="fias-quest4"> Поговорите с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=167503">Фией</a>, чтобы получить <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=170980">Старинный кинжал</a></li>
+							<li><input type="checkbox" id="fias-quest5"> Отдайте кинжал <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=167782">Д (Крепость Круглого стола)</a></li>
+							<li><input type="checkbox" id="fias-quest6"> Перезагрузите <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=165686">Крепость Круглого стола</a> и поговорите с Фией в её новом местоположении возле <a target="_blank"
+									href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=167788">Мастера кузнечного дела Хьюга</a></li>
+							<li><input type="checkbox" id="fias-quest7"> Получите <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=169305">Клеймо смерти</a>, которое можно получить из <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=166648">квеста Ранни</a></li>
+							<li><input type="checkbox" id="fias-quest8"> Идите к <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=167604">Трону Принца Смерти</a> и поговорите с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=169059">Фией</a>.
+								Обнимите её, когда она спросит, пришли ли вы убить её.</li>
+							<li><input type="checkbox" id="fias-quest9"> Перезагрузите область, затем снова поговорите с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=169059">Фией</a></li>
+							<li><input type="checkbox" id="fias-quest10"> Войдите во сне и победите <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=168158">Личдракона Фортисакса</a></li>
+							<li><input type="checkbox" id="fias-quest11"> Вернитесь к <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=169059">Фией</a>, чтобы получить <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=177162">Исправляющую руну Принца Смерти</a>            и <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=168993">Набор Фии</a></li>
+						</ol>
+                `,
+        },
+        {
+            id: 'varres-quest',
+            title: 'Квест Белоликого Варрэ',
+            content: `
+						<p><input type="checkbox" id="varres-quest"><strong>Как начать:</strong> Поговорите с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=164440">Белоликим Варрэ</a> и исчерпайте все варианты диалога.</p>
+						<strong>Шаги:</strong>
+						<ol>
+							<li><input type="checkbox" id="varres-quest1"> Поговорите со всеми NPC в <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=165686">Крепости Круглого стола</a></li>
+							<li><input type="checkbox" id="varres-quest2"> Поговорите с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=164440">Белоликим Варрэ</a> снова на <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=163930">Первом Шаге</a></li>
+							<li><input type="checkbox" id="varres-quest3"> Уничтожьте <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=164421">Годрика Сторукого</a></li>
+							<li><input type="checkbox" id="varres-quest4"> Поговорите с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=170553">Энией, чтицей Пальцев</a> в <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=165686">Крепости Круглого стола</a>            </li>
+							<li><input type="checkbox" id="varres-quest5"> Поговорите с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=166244">Белоликим Варрэ (Вторая Локация)</a> у <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=165504">Храма роз</a></li>
+							<li><input type="checkbox" id="varres-quest6"> Используйте Гниющие Кровавые Пальцы для вторжения в мир другого игрока 3 различных раза (исход боя не важен)</li>
+							<li><input type="checkbox" id="varres-quest7"> Поговорите с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=166244">Белоликим Варрэ (Вторая Локация)</a> перед <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=165504">Храмом роз</a></li>
+							<li><input type="checkbox" id="varres-quest8"> Пропитайте ткань кровью девы (рекомендуется найти мертвых дев в <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=165517">Храме сдержанности</a></li>
+							<li><input type="checkbox" id="varres-quest9"> Поговорите с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=166244">Белоликим Варрэ (Вторая Локация)</a> снова за некоторую добычу</li>
+							<li><input type="checkbox" id="varres-quest10"> Используйте Медаль Чистокровного Рыцаря для путешествия в <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=168582">Мавзолей династии Могвинов</a></li>
+							<li><input type="checkbox" id="varres-quest11"> Убейте Безымянную Белую Маску на месте в Кровавом Болоте после того, как он вторгнется 3 раза, чтобы получить его броню и маску -
+								<ol>
+									<li><input type="checkbox" id="varres-quest11_1"> <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=170262">Безымянная Белая Маска</a></li>
+									<li><input type="checkbox" id="varres-quest11_2"> <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=170263">Безымянная Белая Маска</a></li>
+									<li><input type="checkbox" id="varres-quest11_3"> <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=170264">Безымянная Белая Маска</a></li>
+								</ol>
+							</li>
+							<li><input type="checkbox" id="varres-quest12"> Активируйте <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=174889">сигил призыва Белоликого Варрэ</a> для вторжения в мир Варрэ и победите его</li>
+							<li><input type="checkbox" id="varres-quest13"> После возвращения в свой мир, поговорите с Варрэ, чтобы получить вашу награду.</li>
+						</ol>
+						<p><strong>Добыча:</strong></p>
+						<ul>
+							<li><a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=177159">Кровавый Палец</a></li>
+							<li><a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=177160">Медаль Чистокровного Рыцаря</a></li>
+							<li><a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=170266">Белая Маска</a></li>
+							<li><a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=170265">Комплект Военного Хирурга</a></li>
+							<li><a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=174890">Букет Варрэ</a></li>
+						</ul>
+                `,
+        },
+        {
+            id: 'gurranq-beast-clergymans-quest',
+            title: 'Квест Гурранка, жреца-зверя',
+            content: `
+						<p><input type="checkbox" id="gurranq-beast-clergymans-quest"><strong>Как начать:</strong> Поговорите с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=165617">Гурранком, жрецом-зверем</a> после завершения квеста
+							<a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=167218">Ди, охотника на мёртвых</a></p>
+						<strong>Шаги:</strong>
+						<ol>
+							<li><a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=165617">Гурранк, жрец-зверь</a> может быть обменян до 9 Корней смерти на добычу (смотрите его <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=165617">метку</a>            для уточнения добычи)</li>
+							<li><input type="checkbox" id="gurranq-beast-clergymans-quest-0"> Найдите Корни смерти, разбросанные по Землям между в следующих местах:
+								<ol>
+									<li><input type="checkbox" id="gurranq-beast-clergymans-quest-1"> <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=164510">Корень смерти</a></li>
+									<li><input type="checkbox" id="gurranq-beast-clergymans-quest-2"> <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=164860">Корень смерти</a></li>
+									<li><input type="checkbox" id="gurranq-beast-clergymans-quest-3"> <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=166485">Корень смерти</a></li>
+									<li><input type="checkbox" id="gurranq-beast-clergymans-quest-4"> <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=166620">Корень смерти</a></li>
+									<li><input type="checkbox" id="gurranq-beast-clergymans-quest-5"> <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=167214">Корень смерти</a></li>
+									<li><input type="checkbox" id="gurranq-beast-clergymans-quest-6"> <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=167559">Корень смерти</a></li>
+									<li><input type="checkbox" id="gurranq-beast-clergymans-quest-7"> <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=167667">Корень смерти</a></li>
+									<li><input type="checkbox" id="gurranq-beast-clergymans-quest-8"> <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=168012">Корень смерти</a></li>
+									<li><input type="checkbox" id="gurranq-beast-clergymans-quest-9"> <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=170203">Корень смерти</a></li>
+								</ol>
+							</li>
+							<li><input type="checkbox" id="gurranq-beast-clergymans-quest-10"> После того как вы дадите Гурранку 4-й Корень смерти, он нападет на вас при вашем следующем возвращении. Нанесите ему достаточно урона, и он остановится и снова станет доступен как
+								торговец.</li>
+						</ol>
+						<p><strong>Местоположение:</strong> Звёздные пустоши</p>
+                `,
+        },
+        {
+            id: 'millicents-quest',
+            title: 'Квест Миллисенты',
+            content: `
+						<p><input type="checkbox" id="millicents-quest_x"><strong>Требования:</strong> Завершить <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=166842">Запрос Гоури</a></p>
+						<p><input type="checkbox" id="millicents-quest"><strong>Как начать:</strong> Поговорите с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=167228">Миллисентой (1-е местоположение)</a> в <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=165583">Храме чумы</a></p>
+						<strong>Шаги:</strong>
+						<ol>
+							<li><input type="checkbox" id="millicents-quest1"> Получите <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=166747">Протез валькирии</a>, найденный внутри <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=165485">Сумрачного замка</a></li>
+							<li><input type="checkbox" id="millicents-quest2"> Отдайте его <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=167562">Миллисенте</a>, найденной севернее места благодати <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=167001">Холм, где любуются Древом</a></li>
+							<li><input type="checkbox" id="millicents-quest3"> Идите в <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=166225">Высоты ветряной мельницы</a> и поговорите с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=168077">Миллисентой</a>            там</li>
+							<li><input type="checkbox" id="millicents-quest4"> Идите в <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=167195">Руины Древней Снежной Долины</a> и поговорите с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=169055">Миллисентой</a>            там</li>
+							<li><input type="checkbox" id="millicents-quest5"> Идите в <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=167415">Молитвенную комнату</a> и поговорите с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=170279">Миллисентой</a>            там</li>
+							<li><input type="checkbox" id="millicents-quest6"> Идите в <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=167414">Дренажный канал</a> и победите <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=176825">Изъязвленного древесного духа</a></li>
+							<li><input type="checkbox" id="millicents-quest7"> После победы над Духом выберите красный или золотой призывной знак, чтобы бросить вызов или помочь Миллисенте соответственно - см. <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=177432">Помощь Миллисенте / Вызов Миллисенте</a></li>
+						</ol>
+                `,
+        },
+        {
+            id: 'blackguards-quest',
+            title: 'Квест Чёрного Стража',
+            content: `
+						<p><input type="checkbox" id="blackguards-quest_x"><strong>Требования:</strong> Начать <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=166813">Квест Райи (Зораяс)</a>, затем начать этот квест до достижения
+							<a
+								target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=164405">Вулканово поместье</a>
+						</p>
+						<p><input type="checkbox" id="blackguards-quest"><strong>Как начать:</strong> Поговорите с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=166187">Чёрным стражем</a></p>
+						<strong>Шаги:</strong>
+						<ol>
+							<li><input type="checkbox" id="blackguards-quest1"> Купите <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=177671">Ожерелье Райи</a> у него</li>
+							<li><input type="checkbox" id="blackguards-quest2"> Купите Вареные креветки у него</li>
+							<li><input type="checkbox" id="blackguards-quest3"> Идите на <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=165524">Столичный бастион</a> и поговорите с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=168160">Чёрным стражем</a>            поблизости о Поедателе Отбросов</li>
+							<li><input type="checkbox" id="blackguards-quest4"> Продвигайте <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=169072">Квест Милоса</a> до момента, когда вы освободите его из тюрьмы</li>
+							<li><input type="checkbox" id="blackguards-quest5"> Поговорите с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=168160">Чёрным стражем</a>, который снова предупредит вас о Поедателе Отбросов</li>
+							<li><input type="checkbox" id="blackguards-quest6"> Перезагрузите область и поговорите с умирающим <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=168160">Чёрным стражем</a>. <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=169012">Поедатель Отбросов нападет на вас</a>            после этого разговора.</li>
+						</ol>
+						<p><strong>Местоположение:</strong> Лиурния</p>
+                `,
+        },
+        {
+            id: 'jar-bairns-quest',
+            title: 'Квест Джар-Бэйрна',
+            content: `
+						<p><input type="checkbox" id="jar-bairns-quest"><strong>Как начать:</strong> Поговорите с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=170335">Джар-Бэйрном</a></p>
+						<strong>Шаги:</strong>
+						<ol>
+							<li><input type="checkbox" id="jar-bairns-quest1"> Поговорите с Джар-Бэйрном несколько раз, перезагружая область.</li>
+							<li><input type="checkbox" id="jar-bairns-quest2"> Завершите квест Александра Железного Кулака в Разрушенной Фарум Азуле, чтобы получить Внутренности Александра.</li>
+							<li><input type="checkbox" id="jar-bairns-quest3"> Отдайте Внутренности Александра Джар-Бэйрну и поговорите с ним.</li>
+							<li><input type="checkbox" id="jar-bairns-quest4"> Перезагрузите область, и вы найдете талисман Спутника-Кувшина на предыдущем месте Джар-Бэйрна.</li>
+						</ol>
+						<p><strong>Местоположение:</strong> Озёрная Лиурния</p>
+                `,
+        },
+        {
+            id: 'taniths-quest',
+            title: 'Квест Танит',
+            content: `
+						<p><input type="checkbox" id="taniths-quest"><strong>Как начать:</strong> Поговорите с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=167573">Танит</a> после получения доступа к <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=164405">Вулканово поместье</a></p>
+						<strong>Шаги:</strong>
+						<ol>
+							<li><input type="checkbox" id="taniths-quest1"> Поговорите с Танит и скажите да, когда она спросит вас о присоединении к Семье. Она даст вам ключ для доступа к другим спальням.</li>
+							<li><input type="checkbox" id="taniths-quest2"> В комнате с Райей находится ваша первая цель для убийства: Старый рыцарь Истван. После его победы вернитесь к Танит, чтобы получить ваше вознаграждение: Магмовый выстрел.</li>
+						</ol>
+						<p><strong>Местоположение:</strong> <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=178114">Плато Альтус</a></p>
+                `,
+        },
+        {
+            id: 'brother_corhyns_quest',
+            title: 'Квест Брата Корина',
+            content: `
+						<p><input type="checkbox" id="brother_corhyns_quest"><strong>Как начать:</strong> Поговорите с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=167781">Братом Корином</a>.</p>
+						<strong>Шаги:</strong>
+						<ol>
+							<li><input type="checkbox" id="brother_corhyns_quest1"> Отдохните в любом Месте Благодати на Плато Альтус.</li>
+							<li><input type="checkbox" id="brother_corhyns_quest2"> Поговорите с ним; он переместится на своё <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=167661">второе местоположение</a>.</li>
+							<li><input type="checkbox" id="brother_corhyns_quest3"> Поговорите с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=168529">Золотой Маской</a>.</li>
+							<li><input type="checkbox" id="brother_corhyns_quest4"> Поговорите с Братом Корином; он переместится рядом с Золотой Маской, на его <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=168530">третье местоположение</a>.</li>
+							<li><input type="checkbox" id="brother_corhyns_quest5"> Получите две Великие Руны; он и Золотая Маска переместятся на их <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=168528">четвёртое местоположение</a>.
+								Поговорите здесь с Братом Корином.</li>
+							<li><input type="checkbox" id="brother_corhyns_quest6"> Решите загадку <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=180807">Статуи Радагона</a>.</li>
+							<li><input type="checkbox" id="brother_corhyns_quest7"> Вернитесь, чтобы поговорить с Братом Корином; он и Золотая Маска переместятся на их <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=169054">пятое местоположение</a>.</li>
+							<li><input type="checkbox" id="brother_corhyns_quest8"> Поговорите с Братом Корином.
+								<ul>
+									<li><input type="checkbox" id="brother_corhyns_quest8_1"> Вы можете предложить ему <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=178118">Настойку забвения</a>. Он откажется от неё, но простое предложение
+										изменит конец его квеста.</li>
+								</ul>
+							</li>
+							<li><input type="checkbox" id="brother_corhyns_quest9"> Завершите <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=167132">Разрушающийся Фарум-Азула</a>.
+								<ul>
+									<li><input type="checkbox" id="brother_corhyns_quest9_1"> <strong>Примечание:</strong> Завершение этого шага до других приведёт к завершению квеста. Снаряжение Брата Корина (см. <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=167781">Брата Корина</a>)
+										будет оставлено в последнем месте, где вы его видели.</li>
+								</ul>
+							</li>
+							<li><input type="checkbox" id="brother_corhyns_quest10"> Поговорите и с Братом Корином, и с Золотой Маской:
+								<ul>
+									<li><input type="checkbox" id="brother_corhyns_quest10_1"> Золотая Маска будет здесь. Поговорите с ним один раз, чтобы получить <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=177441">Целую руну Высшего порядка</a>.
+										Перезагрузите область и вернитесь, чтобы получить <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=177442">Комплект Золотой Маски</a>.</li>
+									<li><input type="checkbox" id="brother_corhyns_quest10_2"> Если вы предложили настойку Брату Корину, он все ещё будет на своём пятом местоположении. Поговорите с ним, затем перезагрузите область, чтобы получить его снаряжение (см. <a target="_blank"
+											href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=167781">Брата Корина</a>).</li>
+									<li><input type="checkbox" id="brother_corhyns_quest10_3"> Если вы не предложили ему настойку, он переместится на своё шестое местоположение. Поговорите с ним, затем перезагрузите область, чтобы получить его снаряжение (см. <a target="_blank"
+											href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=167781">Брата Корина</a>).</li>
+								</ul>
+							</li>
+						</ol>
+                `,
+        },
+        {
+            id: 'bernahl_quest',
+            title: 'Квест Бернала',
+            content: `
+						<p><input type="checkbox" id="bernahl_quest"><strong>Как начать:</strong> Поговорите с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=169810">Мятежником Берналом</a> в <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=164405">Вулкановом поместье</a>        и исчерпайте все варианты диалога.</p>
+						<strong>Шаги:</strong>
+						<ol>
+							<li><input type="checkbox" id="bernahl_quest1"> Продвиньте квест Танит после второго убийства.</li>
+							<li><input type="checkbox" id="bernahl_quest2"> Поговорите с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=169810">Мятежником Берналом</a>, чтобы получить "Письмо Берналу" (NB: Вы должны выполнить этот
+								квест до завершения Вулканового поместья).</li>
+							<li><input type="checkbox" id="bernahl_quest3"> Идите в <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=167194">Укреплённое поместье</a>, чтобы убить захватчиков <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=168423">Варграма Свирепого Волка</a>            и Бродячего чародея Вильгельма возле Сайта Благодати на первом этаже. Мятежник Бернал поможет вам в этом бою, и вы получите <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=168413">Комплект Свирепого Волка</a>            после вашей победы.</li>
+							<li><input type="checkbox" id="bernahl_quest4"> Затем вы можете вернуться в <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=164405">Вулканово поместье</a> и поговорить с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=169810">Берналом</a>,
+								чтобы получить чары <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=175955">Гнев Гельмира</a>.</li>
+						</ol>
+						<p><strong>Примечание:</strong> Вы должны выполнить этот квест до завершения <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=164405">Вулканового поместья</a>, так что до убийства <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=167571">Рикарда, богохульного владыки</a>        и также до убийства Маликета.</p>
+                `,
+        },
+        {
+            id: 'latenna-albinauric-quest',
+            title: 'Квест Латенны, альбинорки',
+            content: `
+						<p><input type="checkbox" id="latenna-albinauric-quest"><strong>Как начать:</strong> Действий не требуется</p>
+						<strong>Шаги:</strong>
+						<ol>
+							<li><input type="checkbox" id="latenna-albinauric-quest1"> Получите <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=167191">Тайный медальон Святого Древа (прав.)</a></li>
+							<li><input type="checkbox" id="latenna-albinauric-quest2"> Очистите Кристальную береговую пещеру</li>
+							<li><input type="checkbox" id="latenna-albinauric-quest3"> Она будет сзади пещеры на уступе у обрыва</li>
+							<li><input type="checkbox" id="latenna-albinauric-quest4"> Найдите Латенну в <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=167151">Руинах вероотступников</a></li>
+						</ol>
+						<p><strong>Примечание:</strong> Она умрет, если вы получите обе части Медальона, не поговорив с ней.</p>
+						<p><a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=167291">Тайный медальон Святого Древа (лев.)</a></p>
+                `,
+        },
+    ];
+
+    // Функция для сохранения состояния в localStorage
+    function saveState(key, value) {
+        localStorage.setItem(key, JSON.stringify(value));
+    }
+
+    // Функция для загрузки состояния из localStorage
+    function loadState(key) {
+        const value = localStorage.getItem(key);
+        return value ? JSON.parse(value) : null;
+    }
+
+    // Инициализация страницы
+    function init() {
+        const questsContainer = document.getElementById('quests-container');
+        const questList = document.getElementById('quest-list');
+
+        quests.forEach((quest) => {
+            // Загрузка состояния
+            const status = loadState(`${quest.id}-status`) || 'not-started';
+            const isCollapsed = loadState(`${quest.id}-collapsed`) || false;
+
+            // Создание заголовка квеста
+            const questHeader = document.createElement('div');
+            questHeader.classList.add('quest-header', `status-${status}`);
+            questHeader.id = `${quest.id}-header`;
+
+            const questTitle = document.createElement('h2');
+            questTitle.textContent = quest.title;
+            questHeader.appendChild(questTitle);
+
+            // Переключатель статуса
+            const questActions = document.createElement('div');
+            questActions.classList.add('quest-actions');
+
+            // Панель переключателей
+            const statusToggle = document.createElement('div');
+            statusToggle.classList.add('status-toggle');
+
+            const statuses = ['not-started', 'in-progress', 'completed', 'failed'];
+            const statusLabels = {
+                'not-started': 'Не начато',
+                'in-progress': 'В прогрессе',
+                'completed': 'Выполнено',
+                'failed': 'Провалено'
+            };
+
+            statuses.forEach((stat) => {
+                const btn = document.createElement('button');
+                btn.textContent = statusLabels[stat];
+                if (stat === status) {
+                    btn.classList.add('active');
+                }
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    saveState(`${quest.id}-status`, stat);
+                    questHeader.className = `quest-header status-${stat}`;
+                    updateSidebarStatus(quest.id, stat);
+
+                    // Обновляем кнопки
+                    const buttons = statusToggle.querySelectorAll('button');
+                    buttons.forEach((b) => b.classList.remove('active'));
+                    btn.classList.add('active');
+                });
+                statusToggle.appendChild(btn);
+            });
+
+            questActions.appendChild(statusToggle);
+            questHeader.appendChild(questActions);
+
+            // Событие на заголовок для сворачивания
+            questHeader.addEventListener('click', () => {
+                const content = document.getElementById(`${quest.id}-content`);
+                const collapsed = !content.style.display || content.style.display === 'none';
+                content.style.display = collapsed ? 'block' : 'none';
+                saveState(`${quest.id}-collapsed`, !collapsed);
+            });
+
+            // Создание контента квеста
+            const questContent = document.createElement('div');
+            questContent.id = `${quest.id}-content`;
+            questContent.classList.add('quest-content');
+            questContent.innerHTML = quest.content;
+            questContent.style.display = isCollapsed ? 'none' : 'block';
+
+            // Добавление квеста в контейнер
+            questsContainer.appendChild(questHeader);
+            questsContainer.appendChild(questContent);
+
+            // Добавление квеста в боковую панель
+            const questListItem = document.createElement('li');
+            questListItem.textContent = quest.title;
+            questListItem.id = `${quest.id}-nav`;
+            questListItem.classList.add(`status-${status}`);
+            questListItem.addEventListener('click', () => {
+                document.getElementById(`${quest.id}-header`).scrollIntoView({ behavior: 'smooth' });
+            });
+            questList.appendChild(questListItem);
+
+
+            const items = document.querySelectorAll('input[type="checkbox"]');
+            items.forEach(item => {
+                const id = item.getAttribute('id');
+                const stored = localStorage.getItem(id);
+                item.checked = stored === 'true';
+                updateStyle(item);
+
+                item.addEventListener('change', function() {
+                    localStorage.setItem(id, item.checked);
+                    updateStyle(item);
+                });
+            });
+
+            function updateStyle(checkbox) {
+                let listItem = checkbox.closest('li');
+                if (!listItem) {
+                    listItem = checkbox.closest('p');
+                }
+                if (checkbox.checked) {
+                    listItem.classList.add('status-completed');
+                } else {
+                    listItem.classList.remove('status-completed');
+                }
+            }
+        });
+
+        // Поиск
+        const searchInput = document.getElementById('search-input');
+        searchInput.addEventListener('input', () => {
+            const filter = searchInput.value.toLowerCase();
+            quests.forEach((quest) => {
+                const header = document.getElementById(`${quest.id}-header`);
+                const content = document.getElementById(`${quest.id}-content`);
+                const navItem = document.getElementById(`${quest.id}-nav`);
+                if (quest.title.toLowerCase().includes(filter) || quest.content.toLowerCase().includes(filter)) {
+                    header.style.display = '';
+                    navItem.style.display = '';
+                    content.style.display = loadState(`${quest.id}-collapsed`) ? 'none' : 'block';
+                } else {
+                    header.style.display = 'none';
+                    navItem.style.display = 'none';
+                    content.style.display = 'none';
+                }
+            });
+        });
+    }
+
+    // Обновление статуса в боковой панели
+    function updateSidebarStatus(questId, status) {
+        const navItem = document.getElementById(`${questId}-nav`);
+        navItem.className = `status-${status}`;
+    }
+
+    // Функция для вычисления хеша содержимого
+    async function calculateHash(data) {
+        const encoder = new TextEncoder();
+        const dataBuffer = encoder.encode(data);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', dataBuffer);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        return hashHex;
+    }
+
+    // Функция для экспорта прогресса в файл с уникальным именем
+    async function exportProgress() {
+        const data = {};
+
+        // Собираем данные из localStorage
+        for (let key in localStorage) {
+            if (localStorage.hasOwnProperty(key)) {
+                data[key] = localStorage.getItem(key);
+            }
+        }
+
+        // Сортируем ключи по алфавиту
+        const sortedData = {};
+        Object.keys(data)
+            .sort()
+            .forEach(key => {
+                sortedData[key] = data[key];
+            });
+
+        // Преобразуем в JSON-строку
+        const dataStr = JSON.stringify(sortedData, null, 2);
+
+        // Вычисляем хеш от содержимого
+        const hash = await calculateHash(dataStr);
+
+        const blob = new Blob([dataStr], { type: 'application/json' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+
+        // Используем хеш для создания уникального имени файла
+        link.download = `progress_${hash}.json`;
+        link.click();
+    }
+
+    // Функция для импорта прогресса из файла
+    function importProgress(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    for (let key in data) {
+                        if (data.hasOwnProperty(key)) {
+                            localStorage.setItem(key, data[key]);
+                        }
+                    }
+                    // Перезагружаем страницу для обновления прогресса
+                    location.reload();
+                } catch (error) {
+                    alert('Ошибка при загрузке файла. Убедитесь, что это правильный JSON-файл.');
+                }
+            };
+            reader.readAsText(file);
+        }
+    }
+
+    // Добавляем обработчики событий
+    document.getElementById('save-progress').addEventListener('click', exportProgress);
+    document.getElementById('load-file').addEventListener('change', importProgress);
+
+    window.onload = init;
+</script>
+</body>
+</html>
