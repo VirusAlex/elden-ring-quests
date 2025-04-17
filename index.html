@@ -68,8 +68,8 @@
         .content {
             flex: 1;
             padding: 0 20px 20px 20px;
-            height: calc(100vh - 20px); /* Добавлено */
-            overflow-y: auto; /* Добавлено */
+            height: calc(100vh - 20px);
+            overflow-y: auto;
         }
 
         .quest-header {
@@ -77,7 +77,7 @@
             cursor: pointer;
             padding: 15px;
             border-radius: 4px;
-            margin-top: 5px;
+            margin-top: 15px;
             background-color: var(--color-header);
             color: var(--color-text);
             display: flex;
@@ -188,11 +188,13 @@
         }
 
         /* Стили списков внутри квестов */
+        .quest-content div,
         .quest-content ol,
         .quest-content ul {
             margin-left: 20px;
         }
 
+        .quest-content div,
         .quest-content li {
             margin-bottom: 5px;
         }
@@ -200,6 +202,12 @@
         /* Стили для шагов квеста */
         .quest-content strong {
             color: var(--color-accent);
+        }
+
+        /* Стили для выполненных пунктов */
+        .quest-content .status-completed {
+            color: var(--color-completed);
+            text-decoration: line-through;
         }
 
         .save-load-buttons {
@@ -229,6 +237,35 @@
             background-color: var(--color-header);
         }
 
+        /* Стили для переключателя типов квестов */
+        .quest-type-toggle {
+            display: flex;
+            background-color: var(--color-header);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+
+        .quest-type-toggle button {
+            flex: 1;
+            background: none;
+            border: none;
+            padding: 8px 10px;
+            color: var(--color-text-secondary);
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .quest-type-toggle button.active {
+            background-color: var(--color-accent);
+            color: var(--color-bg);
+            font-weight: bold;
+        }
+
+        .quest-type-toggle button:hover:not(.active) {
+            background-color: var(--color-border);
+        }
+
     </style>
 </head>
 <body>
@@ -236,13 +273,14 @@
 <div class="sidebar">
     <div >
         <h2>Elden Ring Quests</h2>
+        <div class="quest-type-toggle">
+            <button id="main-quests-toggle" class="active">Междуземье</button>
+            <button id="dlc-quests-toggle">Земли Теней</button>
+        </div>
         <ul id="quest-list">
-            <!-- Список квестов будет заполнен динамически -->
         </ul>
     </div>
 
-    <!-- Кнопки сохранения и загрузки состояния -->
-    <!-- Кнопки сохранения и загрузки состояния -->
     <div class="save-load-buttons">
         <button id="save-progress">Сохранить прогресс</button>
         <input type="file" id="load-file" accept=".json" hidden>
@@ -264,7 +302,6 @@
 </div>
 
 <script>
-    // Список квестов (пример с тремя квестами, добавьте остальные по аналогии)
     const quests = [
         {
             id: 'roderikas-quest',
@@ -470,8 +507,8 @@
 							<li><input type="checkbox" id="rannis-quest4"> Поговорить с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=164616">Волшебницей Селлен</a></li>
 							<li><input type="checkbox" id="rannis-quest5"> Победить <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=165444">Радана, Пожирателя Звезд</a></li>
 							<li><input type="checkbox" id="rannis-quest6"> Войти в <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=167493">Нокрон, Вечный Город</a> и извлечь <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=170239">Клинок Убийцы Пальцев</a></li>
-							<li><input type="checkbox" id="rannis-quest7"> Отдать Клинок Убийцы Пальцев <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=166221">Ренни Колдунье</a> (это предотвратит завершение <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=169060">Квеста Селувиса</a>,
-								если он не завершен)</li>
+							<li><input type="checkbox" id="rannis-quest-pre7"> Убедитесь, что <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=169060">Квест Селувиса</a> выполнен, иначе выполнение следующего шага приведет к провалу квеста Селувиса</li>
+							<li><input type="checkbox" id="rannis-quest7"> Отдать Клинок Убийцы Пальцев <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=166221">Ренни Колдунье</a> (если сделать это, то Квест Селувиса будет провален, если он не завершен)</li>
 							<li><input type="checkbox" id="rannis-quest8"> Подняться на <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=164411">Божественную Башню Лиурнии</a> и извлечь <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=169305">Клеймо Смерти</a></li>
 							<li><input type="checkbox" id="rannis-quest9"> Идти к <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=167480">Основной Реке Айнсел</a> и подобрать Миниатюрную Ренни, сидящую на гробе</li>
 							<li><input type="checkbox" id="rannis-quest10"> Отдохнуть у Места Благодати и поговорить с Миниатюрной Ренни (возможно, придется активировать вариант диалога несколько раз, прежде чем она ответит)</li>
@@ -480,7 +517,7 @@
 							<li><input type="checkbox" id="rannis-quest13"> Вернуться к реке Айнсел и пересечь Озеро Гнили (<a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=166672">Огонь, очисти меня</a> очень помогает в этом)</li>
 							<li><input type="checkbox" id="rannis-quest14"> Войти в <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=168579">Портал к Астелу, Рожденному Пустотой</a></li>
 							<li><input type="checkbox" id="rannis-quest15"> Победить <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=167488">Астела, Рожденного Пустотой</a> и извлечь <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=170488">Воспоминание о Рожденном</a></li>
-							<li><input type="checkbox" id="rannis-quest16"> Взять <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=168601">лифт</a> на север вверх к <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=166807">Алтарю Лунного Света</a>            </li>
+							<li><input type="checkbox" id="rannis-quest16"> Взять <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=168601">лифт</a> на север вверх к <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=166807">Алтарю Лунного Света</a></li>
 							<li><input type="checkbox" id="rannis-quest17"> Войти в <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=165510">Собор Манус Селлус</a></li>
 							<li><input type="checkbox" id="rannis-quest18"> Использовать <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=177447">Кольцо Темной Луны</a> с Миниатюрной Ренни и извлечь <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=167891">Великий Меч Темной Луны</a></li>
 						</ol>
@@ -633,6 +670,9 @@
 								</ol>
 							</li>
 						</ol>
+                        <ul>
+                            <li><strong>Точка провала:</strong> Сюжетную линию этого персонажа можно пройти только до того, как Ренни Колдунья получит Клинок убийцы Пальцев.</li>
+                        </ul>
 						<ul>
 							<li><a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=165848">Лиурния</a></li>
 						</ul>
@@ -992,23 +1032,27 @@
 								</ul>
 							</li>
 						</ol>
+						<ul>
+                            <li><strong>Точка провала 1:</strong> Если не решить загадку у статуи Радагона, то после убийства Огненного великана (и сжигания Древа Эрд) ученик умрёт, а учитель исчезнет. В этом случае вещи священника можно забрать в месте последней встречи.</li>
+                            <li><strong>Точка провала 2:</strong> Если отдать настойку забвения Корину при пятой встрече, то последствия будут как в пункте 1. Тем не менее, на этом этапе в столице пепла можно получить целую руну Высшего порядка.</li>
+                        </ul>
                 `,
         },
         {
             id: 'bernahl_quest',
             title: 'Квест Бернала',
             content: `
-						<p><input type="checkbox" id="bernahl_quest"><strong>Как начать:</strong> Поговорите с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=169810">Мятежником Берналом</a> в <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=164405">Вулкановом поместье</a>        и исчерпайте все варианты диалога.</p>
+						<p><input type="checkbox" id="bernahl_quest"><strong>Как начать:</strong> Поговорите с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=169810">Мятежником Берналом</a> в <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=164405">Вулкановом поместье</a> и исчерпайте все варианты диалога.</p>
 						<strong>Шаги:</strong>
 						<ol>
 							<li><input type="checkbox" id="bernahl_quest1"> Продвиньте квест Танит после второго убийства.</li>
 							<li><input type="checkbox" id="bernahl_quest2"> Поговорите с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=169810">Мятежником Берналом</a>, чтобы получить "Письмо Берналу" (NB: Вы должны выполнить этот
 								квест до завершения Вулканового поместья).</li>
-							<li><input type="checkbox" id="bernahl_quest3"> Идите в <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=167194">Укреплённое поместье</a>, чтобы убить захватчиков <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=168423">Варграма Свирепого Волка</a>            и Бродячего чародея Вильгельма возле Сайта Благодати на первом этаже. Мятежник Бернал поможет вам в этом бою, и вы получите <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=168413">Комплект Свирепого Волка</a>            после вашей победы.</li>
+							<li><input type="checkbox" id="bernahl_quest3"> Идите в <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=167194">Укреплённое поместье</a>, чтобы убить захватчиков <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=168423">Варграма Свирепого Волка</a> и Бродячего чародея Вильгельма возле Сайта Благодати на первом этаже. Мятежник Бернал поможет вам в этом бою, и вы получите <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=168413">Комплект Свирепого Волка</a>            после вашей победы.</li>
 							<li><input type="checkbox" id="bernahl_quest4"> Затем вы можете вернуться в <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=164405">Вулканово поместье</a> и поговорить с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=169810">Берналом</a>,
 								чтобы получить чары <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=175955">Гнев Гельмира</a>.</li>
 						</ol>
-						<p><strong>Примечание:</strong> Вы должны выполнить этот квест до завершения <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=164405">Вулканового поместья</a>, так что до убийства <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=167571">Рикарда, богохульного владыки</a>        и также до убийства Маликета.</p>
+						<p><strong>Примечание:</strong> Вы должны выполнить этот квест до завершения <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=164405">Вулканового поместья</a>, так что до убийства <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-lands-between?locationIds=167571">Рикарда, богохульного владыки</a> и также до убийства Маликета.</p>
                 `,
         },
         {
@@ -1029,6 +1073,125 @@
         },
     ];
 
+    const dlc_quests = [
+        {
+            id: 'monks-missive',
+            title: 'Послание от монаха',
+            content: `
+            <p><input type="checkbox" id="monks-missive"><strong>Как начать:</strong> Подберите записку на земле</p>
+            <strong>Шаги:</strong>
+            <ol>
+                <li><input type="checkbox" id="monks-missive1"> Найдите монаха на востоке у благодати "Руины Мурта"</li>
+                <li><input type="checkbox" id="monks-missive2"> Используйте жест "Пусть победит лучший" и сразитесь с ним</li>
+                <li><input type="checkbox" id="monks-missive3"> Получите Шляпу Дейна и Приём Сухого Листа</li>
+            </ol>
+            <p><strong>Местоположение:</strong> <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-shadow-realm?locationIds=381221">Царство Теней - Земля Теней</a></p>
+        `
+        },
+        {
+            id: 'count-ymirs-quest',
+            title: 'Квест графа Имира',
+            content: `
+            <p><input type="checkbox" id="count-ymirs-quest"><strong>Как начать:</strong> Поговорите с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-shadow-realm?locationIds=381272">графом Имиром</a></p>
+            <strong>Шаги:</strong>
+            <ol>
+                <li><input type="checkbox" id="count-ymirs-quest1"> Поговорите с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-shadow-realm?locationIds=381272">графом Имиром</a>, он даст карту с местоположением колокола и Ожерелье с отверстиями</li>
+                <li><input type="checkbox" id="count-ymirs-quest2"> Отправляйтесь к <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-shadow-realm?locationIds=382251">Висячему колоколу</a> и ударьте в него</li>
+                <li><input type="checkbox" id="count-ymirs-quest3"> Вернитесь к <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-shadow-realm?locationIds=381272">Имиру</a>, он укажет местоположение вторых руин и даст Талисман: Бесценная звёздная пыль</li>
+                <li><input type="checkbox" id="count-ymirs-quest4"> Ударьте во второй колокол в <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-shadow-realm?locationIds=382345">Руинах обители пальцев Рии</a></li>
+                <li><input type="checkbox" id="count-ymirs-quest5"> Вернитесь к <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-shadow-realm?locationIds=381272">Имиру</a>, поговорите с ним, и он даст карту третьих руин</li>
+                <li><input type="checkbox" id="count-ymirs-quest6"> Перезагрузите область и взаимодействуйте с троном, чтобы открыть лестницу вниз</li>
+                <li><input type="checkbox" id="count-ymirs-quest7"> Ударьте в колокол в области под лестницей, чтобы начать бой с боссом: <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-shadow-realm?locationIds=382002">Матерь Пальцев Метир</a>. Победите её и вернитесь в часовню</li>
+                <li><input type="checkbox" id="count-ymirs-quest8"> Подойдите к трону, вас атакует Йолана. Победите её, чтобы вызвать Имира как босса</li>
+            </ol>
+            <p><strong>Местоположение:</strong> <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-shadow-realm?locationIds=382214">Царство Теней - Земля Теней</a></p>
+        `
+        },
+        {
+            id: 'st-trinas-quest',
+            title: 'Квест святой Трины',
+            content: `
+            <p><input type="checkbox" id="st-trinas-quest"><strong>Как начать:</strong> Поговорите со <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-shadow-realm?locationIds=382315">святой Тиной</a> после победы над <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-shadow-realm?locationIds=381961">Гниющим рыцарем</a></p>
+            <strong>Шаги:</strong>
+            <ol>
+                <li><input type="checkbox" id="st-trinas-quest1"> Подберите <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-shadow-realm?locationIds=382316">Кулинарную книгу святой Трины [3]</a> рядом со <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-shadow-realm?locationIds=382315">святой Тиной</a> и создайте <em>Усыпляющую ветвь</em></li>
+                <li><input type="checkbox" id="st-trinas-quest2"> Используйте ветвь, затем поговорите со святой Тиной и "Испейте нектар" четыре раза (вы умрёте)</li>
+                <li><input type="checkbox" id="st-trinas-quest3"> Поговорите со святой Тиной и "Испейте нектар" в пятый раз, чтобы получить диалог в катсцене</li>
+                <li><input type="checkbox" id="st-trinas-quest4"> Поговорите со святой Тиной и "Испейте нектар" в шестой раз, чтобы получить ещё один диалог в катсцене</li>
+                <li><input type="checkbox" id="st-trinas-quest5"> Поговорите с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-shadow-realm?locationIds=381963">Тиолье</a>, чтобы продвинуть его диалог</li>
+                <li><input type="checkbox" id="st-trinas-quest6"> Перезагрузите область, и <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-shadow-realm?locationIds=382633">Тиолье вторгнется</a></li>
+            </ol>
+            <p><strong>Местоположение:</strong> <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-shadow-realm?locationIds=382317">Царство Теней - Земля Теней</a></p>
+        `
+        },
+        {
+            id: 'needle-knight-ledas-questline',
+            title: 'Квест игольщицы Леды',
+            content: `
+            <p><input type="checkbox" id="needle-knight-ledas-questline"><strong>Как начать:</strong> Подберите <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-shadow-realm?locationIds=380804">Послание с башни тени</a>. Вы должны поговорить с Ледой до входа в Царство Теней, чтобы квест активировался корректно.</p>
+            <strong>Шаги:</strong>
+            <ol>
+                <li><input type="checkbox" id="needle-knight-ledas-questline1"> Прочитайте <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-shadow-realm?locationIds=381194">Крестовое послание с замка</a></li>
+                <li><input type="checkbox" id="needle-knight-ledas-questline2"> Поговорите с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-shadow-realm?locationIds=380252">игольщицей Ледой</a></li>
+                <li><input type="checkbox" id="needle-knight-ledas-questline3"> Разрушьте Великую руну; подойдите к <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-shadow-realm?locationIds=381342">Пристанищу Теней</a>, пока не получите уведомление "где-то Великая руна была разрушена"</li>
+                <li><input type="checkbox" id="needle-knight-ledas-questline4"> Снова поговорите с игольщицей Ледой</li>
+                <li><input type="checkbox" id="needle-knight-ledas-questline5"> Завершите <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-shadow-realm?locationIds=381987">Квест Леды (1-й бой)</a> (см. бой для последствий выбора)</li>
+                <li><input type="checkbox" id="needle-knight-ledas-questline6"> Поговорите с игольщицей Ледой, чтобы получить <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-shadow-realm?locationIds=386478">Скрещённые стволы расправы</a></li>
+                <li><input type="checkbox" id="needle-knight-ledas-questline7"> Завершите <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-shadow-realm?locationIds=381988">Квест Леды (2-й бой)</a> (см. бой для последствий выбора)</li>
+                <li><input type="checkbox" id="needle-knight-ledas-questline8"> Поговорите с игольщицей Ледой, чтобы получить <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-shadow-realm?locationIds=386477">Талисман скрещённых стволов мести</a></li>
+                <li><input type="checkbox" id="needle-knight-ledas-questline9"> Победите <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-shadow-realm?locationIds=384098">игольщицу Леду</a></li>
+            </ol>
+            <p><strong>Местоположение:</strong> <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-shadow-realm?locationIds=387453">Царство Теней - Земля Теней</a></p>
+        `
+        },
+        {
+            id: 'hornsents-questline',
+            title: 'Квест Роговеста',
+            content: `
+            <p><input type="checkbox" id="hornsents-questline"><strong>Как начать:</strong> Поговорите с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-shadow-realm?locationIds=380738">Рыцарем Рыжей Гривы Фрейей</a></p>
+            <strong>Шаги:</strong>
+            <ol>
+                <li><input type="checkbox" id="hornsents-questline1"> Поговорите с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-shadow-realm?locationIds=380739">Роговестом</a></li>
+                <li><input type="checkbox" id="hornsents-questline2"> Поговорите с Роговестом в его <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-shadow-realm?locationIds=380254">новом местоположении</a></li>
+                <li><input type="checkbox" id="hornsents-questline3"> Разрушьте Великую руну; подойдите к <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-shadow-realm?locationIds=381342">Пристанищу Теней</a>, пока не получите уведомление "где-то Великая руна была разрушена"</li>
+                <li><input type="checkbox" id="hornsents-questline4"> Снова поговорите с Роговестом</li>
+                <li><input type="checkbox" id="hornsents-questline5"> Завершите <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-shadow-realm?locationIds=381987">Квест Леды (1-й бой)</a> (см. бой для последствий выбора)</li>
+                <li><input type="checkbox" id="hornsents-questline6"> Призовите Роговеста для битвы с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-shadow-realm?locationIds=381741">Мессмером Колосажателем</a></li>
+                <li><input type="checkbox" id="hornsents-questline7"> Победите Роговеста, либо:
+                    <ul>
+                        <li><a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-shadow-realm?locationIds=382691">Как вторженца</a></li>
+                        <li>Как союзника <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-shadow-realm?locationIds=384098">игольщицы Леды</a></li>
+                    </ul>
+                </li>
+            </ol>
+            <p><strong>Местоположение:</strong> <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-shadow-realm?locationIds=387464">Царство Теней - Земля Теней</a></p>
+        `
+        },
+        {
+            id: 'sir-ansbachs-questline',
+            title: 'Квест господина Ансбаха',
+            content: `
+            <p><input type="checkbox" id="sir-ansbachs-questline"><strong>Как начать:</strong> Поговорите с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-shadow-realm?locationIds=380752">господином Ансбахом</a></p>
+            <strong>Шаги:</strong>
+            <ol>
+                <li><input type="checkbox" id="sir-ansbachs-questline1"> Взаимодействуйте с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-shadow-realm?locationIds=382123">Крестом Микеллы</a></li>
+                <li><input type="checkbox" id="sir-ansbachs-questline2"> Снова поговорите с господином Ансбахом</li>
+                <li><input type="checkbox" id="sir-ansbachs-questline3"> Разрушьте Великую руну; подойдите к <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-shadow-realm?locationIds=381342">Пристанищу Теней</a>, пока не получите уведомление "где-то Великая руна была разрушена"</li>
+                <li><input type="checkbox" id="sir-ansbachs-questline4"> Поговорите с господином Ансбахом в его <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-shadow-realm?locationIds=382217">новом местоположении</a></li>
+                <li><input type="checkbox" id="sir-ansbachs-questline5"> Прочитайте <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-shadow-realm?locationIds=381713">Послание с хранилища креста</a></li>
+                <li><input type="checkbox" id="sir-ansbachs-questline6"> Поговорите с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-shadow-realm?locationIds=383036">Рыцарем Рыжей Гривы Фрейей</a></li>
+                <li><input type="checkbox" id="sir-ansbachs-questline7"> Снова поговорите с Ансбахом; он даст письмо для Фрейи</li>
+                <li><input type="checkbox" id="sir-ansbachs-questline8"> Найдите <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-shadow-realm?locationIds=381721">Свиток с тайным обрядом</a></li>
+                <li><input type="checkbox" id="sir-ansbachs-questline9"> Передайте свиток Ансбаху</li>
+                <li><input type="checkbox" id="sir-ansbachs-questline10"> Завершите <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-shadow-realm?locationIds=381988">Квест Леды (2-й бой)</a> (см. бой для последствий выбора)</li>
+                <li><input type="checkbox" id="sir-ansbachs-questline11"> Призовите Ансбаха для битвы с <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-shadow-realm?locationIds=382044">Будущим консортом Раданом</a>. Если вы это сделаете, после победы вы получите <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-shadow-realm?locationIds=386515">Комплект Ансбаха</a></li>
+            </ol>
+            <p><strong>Примечание:</strong> Шаги 6 и 7 необязательны, но необходимы для ??</p>
+            <p><strong>Местоположение:</strong> <a target="_blank" href="https://mapgenie.io/elden-ring/maps/the-shadow-realm?locationIds=387468">Царство Теней - Земля Теней</a></p>
+        `
+        },
+    ];
+
     // Функция для сохранения состояния в localStorage
     function saveState(key, value) {
         localStorage.setItem(key, JSON.stringify(value));
@@ -1040,129 +1203,196 @@
         return value ? JSON.parse(value) : null;
     }
 
+    // Функция для обновления стилей чекбоксов
+    function updateCheckboxStyle(checkbox) {
+        // Находим родительский элемент (li, p, span или div)
+        let parentElement = checkbox.closest('li');
+        if (!parentElement) {
+            parentElement = checkbox.closest('p');
+        }
+        if (!parentElement) {
+            parentElement = checkbox.closest('span');
+        }
+        if (!parentElement) {
+            parentElement = checkbox.closest('div');
+        }
+        
+        if (parentElement) {
+            if (checkbox.checked) {
+                parentElement.classList.add('status-completed');
+            } else {
+                parentElement.classList.remove('status-completed');
+            }
+        }
+    }
+
     // Инициализация страницы
     function init() {
         const questsContainer = document.getElementById('quests-container');
         const questList = document.getElementById('quest-list');
-
-        quests.forEach((quest) => {
-            // Загрузка состояния
-            const status = loadState(`${quest.id}-status`) || 'not-started';
-            const isCollapsed = loadState(`${quest.id}-collapsed`) || false;
-
-            // Создание заголовка квеста
-            const questHeader = document.createElement('div');
-            questHeader.classList.add('quest-header', `status-${status}`);
-            questHeader.id = `${quest.id}-header`;
-
-            const questTitle = document.createElement('h2');
-            questTitle.textContent = quest.title;
-            questHeader.appendChild(questTitle);
-
-            // Переключатель статуса
-            const questActions = document.createElement('div');
-            questActions.classList.add('quest-actions');
-
-            // Панель переключателей
-            const statusToggle = document.createElement('div');
-            statusToggle.classList.add('status-toggle');
-
-            const statuses = ['not-started', 'in-progress', 'completed', 'failed'];
-            const statusLabels = {
-                'not-started': 'Не начато',
-                'in-progress': 'В прогрессе',
-                'completed': 'Выполнено',
-                'failed': 'Провалено'
-            };
-
-            statuses.forEach((stat) => {
-                const btn = document.createElement('button');
-                btn.textContent = statusLabels[stat];
-                if (stat === status) {
-                    btn.classList.add('active');
-                }
-                btn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    saveState(`${quest.id}-status`, stat);
-                    questHeader.className = `quest-header status-${stat}`;
-                    updateSidebarStatus(quest.id, stat);
-
-                    // Обновляем кнопки
-                    const buttons = statusToggle.querySelectorAll('button');
-                    buttons.forEach((b) => b.classList.remove('active'));
-                    btn.classList.add('active');
-                });
-                statusToggle.appendChild(btn);
-            });
-
-            questActions.appendChild(statusToggle);
-            questHeader.appendChild(questActions);
-
-            // Событие на заголовок для сворачивания
-            questHeader.addEventListener('click', () => {
-                const content = document.getElementById(`${quest.id}-content`);
-                const collapsed = !content.style.display || content.style.display === 'none';
-                content.style.display = collapsed ? 'block' : 'none';
-                saveState(`${quest.id}-collapsed`, !collapsed);
-            });
-
-            // Создание контента квеста
-            const questContent = document.createElement('div');
-            questContent.id = `${quest.id}-content`;
-            questContent.classList.add('quest-content');
-            questContent.innerHTML = quest.content;
-            questContent.style.display = isCollapsed ? 'none' : 'block';
-
-            // Добавление квеста в контейнер
-            questsContainer.appendChild(questHeader);
-            questsContainer.appendChild(questContent);
-
-            // Добавление квеста в боковую панель
-            const questListItem = document.createElement('li');
-            questListItem.textContent = quest.title;
-            questListItem.id = `${quest.id}-nav`;
-            questListItem.classList.add(`status-${status}`);
-            questListItem.addEventListener('click', () => {
-                document.getElementById(`${quest.id}-header`).scrollIntoView({ behavior: 'smooth' });
-            });
-            questList.appendChild(questListItem);
-
-
-            const items = document.querySelectorAll('input[type="checkbox"]');
-            items.forEach(item => {
-                const id = item.getAttribute('id');
-                const stored = localStorage.getItem(id);
-                item.checked = stored === 'true';
-                updateStyle(item);
-
-                item.addEventListener('change', function() {
-                    localStorage.setItem(id, item.checked);
-                    updateStyle(item);
-                });
-            });
-
-            function updateStyle(checkbox) {
-                let listItem = checkbox.closest('li');
-                if (!listItem) {
-                    listItem = checkbox.closest('p');
-                }
-                if (checkbox.checked) {
-                    listItem.classList.add('status-completed');
-                } else {
-                    listItem.classList.remove('status-completed');
-                }
+        const mainQuestsToggle = document.getElementById('main-quests-toggle');
+        const dlcQuestsToggle = document.getElementById('dlc-quests-toggle');
+        
+        // Текущий тип отображаемых квестов (основные или DLC)
+        let currentQuestType = loadState('currentQuestType') || 'main';
+        
+        // Устанавливаем начальное состояние переключателей
+        if (currentQuestType === 'main') {
+            mainQuestsToggle.classList.add('active');
+            dlcQuestsToggle.classList.remove('active');
+        } else {
+            dlcQuestsToggle.classList.add('active');
+            mainQuestsToggle.classList.remove('active');
+        }
+        
+        // Обработчики переключения типов квестов
+        mainQuestsToggle.addEventListener('click', () => {
+            if (currentQuestType !== 'main') {
+                currentQuestType = 'main';
+                saveState('currentQuestType', currentQuestType);
+                mainQuestsToggle.classList.add('active');
+                dlcQuestsToggle.classList.remove('active');
+                renderQuests(quests);
             }
         });
+        
+        dlcQuestsToggle.addEventListener('click', () => {
+            if (currentQuestType !== 'dlc') {
+                currentQuestType = 'dlc';
+                saveState('currentQuestType', currentQuestType);
+                dlcQuestsToggle.classList.add('active');
+                mainQuestsToggle.classList.remove('active');
+                renderQuests(dlc_quests);
+            }
+        });
+        
+        // Функция рендеринга квестов на основе активного типа
+        function renderQuests(questsToRender) {
+            // Очищаем контейнеры перед рендерингом
+            questsContainer.innerHTML = '';
+            questList.innerHTML = '';
+            
+            questsToRender.forEach((quest) => {
+                // Загрузка состояния
+                const status = loadState(`${quest.id}-status`) || 'not-started';
+                const isCollapsed = loadState(`${quest.id}-collapsed`) || false;
 
-        // Поиск
+                // Создание заголовка квеста
+                const questHeader = document.createElement('div');
+                questHeader.classList.add('quest-header', `status-${status}`);
+                questHeader.id = `${quest.id}-header`;
+
+                const questTitle = document.createElement('h2');
+                questTitle.textContent = quest.title;
+                questHeader.appendChild(questTitle);
+
+                // Переключатель статуса
+                const questActions = document.createElement('div');
+                questActions.classList.add('quest-actions');
+
+                // Панель переключателей
+                const statusToggle = document.createElement('div');
+                statusToggle.classList.add('status-toggle');
+
+                const statuses = ['not-started', 'in-progress', 'completed', 'failed'];
+                const statusLabels = {
+                    'not-started': 'Не начато',
+                    'in-progress': 'В прогрессе',
+                    'completed': 'Выполнено',
+                    'failed': 'Провалено'
+                };
+
+                statuses.forEach((stat) => {
+                    const btn = document.createElement('button');
+                    btn.textContent = statusLabels[stat];
+                    if (stat === status) {
+                        btn.classList.add('active');
+                    }
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        saveState(`${quest.id}-status`, stat);
+                        questHeader.className = `quest-header status-${stat}`;
+                        updateSidebarStatus(quest.id, stat);
+
+                        // Обновляем кнопки
+                        const buttons = statusToggle.querySelectorAll('button');
+                        buttons.forEach((b) => b.classList.remove('active'));
+                        btn.classList.add('active');
+                    });
+                    statusToggle.appendChild(btn);
+                });
+
+                questActions.appendChild(statusToggle);
+                questHeader.appendChild(questActions);
+
+                // Событие на заголовок для сворачивания
+                questHeader.addEventListener('click', () => {
+                    const content = document.getElementById(`${quest.id}-content`);
+                    const isContentVisible = content.style.display !== 'none';
+                    content.style.display = isContentVisible ? 'none' : 'block';
+                    saveState(`${quest.id}-collapsed`, isContentVisible);
+                });
+
+                // Создание содержимого квеста
+                const questContent = document.createElement('div');
+                questContent.classList.add('quest-content');
+                questContent.id = `${quest.id}-content`;
+                questContent.innerHTML = quest.content;
+                questContent.style.display = isCollapsed ? 'none' : 'block';
+
+                // Добавление в DOM
+                questsContainer.appendChild(questHeader);
+                questsContainer.appendChild(questContent);
+
+                // Создание элемента боковой панели
+                const sidebarItem = document.createElement('li');
+                sidebarItem.id = `${quest.id}-nav`;
+                sidebarItem.classList.add(`status-${status}`);
+                sidebarItem.textContent = quest.title;
+                sidebarItem.addEventListener('click', () => {
+                    const header = document.getElementById(`${quest.id}-header`);
+                    header.scrollIntoView({ behavior: 'smooth' });
+                });
+
+                questList.appendChild(sidebarItem);
+
+                // Инициализируем чекбоксы
+                const checkboxes = questContent.querySelectorAll('input[type="checkbox"]');
+                checkboxes.forEach(checkbox => {
+                    // Получаем сохраненное значение (в localStorage оно хранится как строка)
+                    const savedValue = localStorage.getItem(checkbox.id);
+                    checkbox.checked = savedValue === 'true';
+                    
+                    // Добавляем стили для родительского элемента при инициализации
+                    updateCheckboxStyle(checkbox);
+                    
+                    checkbox.addEventListener('change', function() {
+                        // Сохраняем значение напрямую в localStorage
+                        localStorage.setItem(this.id, this.checked);
+                        // Добавляем обновление стилей при изменении
+                        updateCheckboxStyle(this);
+                    });
+                });
+            });
+        }
+        
+        // Изначально загружаем соответствующие квесты
+        renderQuests(currentQuestType === 'main' ? quests : dlc_quests);
+
+        // Инициализируем поле поиска
         const searchInput = document.getElementById('search-input');
-        searchInput.addEventListener('input', () => {
-            const filter = searchInput.value.toLowerCase();
-            quests.forEach((quest) => {
+        searchInput.addEventListener('input', function() {
+            const searchValue = this.value.toLowerCase();
+            
+            // Выбираем текущий список квестов для поиска
+            const currentQuestsList = currentQuestType === 'main' ? quests : dlc_quests;
+            
+            currentQuestsList.forEach(quest => {
                 const header = document.getElementById(`${quest.id}-header`);
                 const content = document.getElementById(`${quest.id}-content`);
                 const navItem = document.getElementById(`${quest.id}-nav`);
-                if (quest.title.toLowerCase().includes(filter) || quest.content.toLowerCase().includes(filter)) {
+                
+                if (quest.title.toLowerCase().includes(searchValue) || content.textContent.toLowerCase().includes(searchValue)) {
                     header.style.display = '';
                     navItem.style.display = '';
                     content.style.display = loadState(`${quest.id}-collapsed`) ? 'none' : 'block';
@@ -1196,10 +1426,9 @@
         const data = {};
 
         // Собираем данные из localStorage
-        for (let key in localStorage) {
-            if (localStorage.hasOwnProperty(key)) {
-                data[key] = localStorage.getItem(key);
-            }
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            data[key] = localStorage.getItem(key);
         }
 
         // Сортируем ключи по алфавиту
@@ -1238,10 +1467,12 @@
                             localStorage.setItem(key, data[key]);
                         }
                     }
+                    
                     // Перезагружаем страницу для обновления прогресса
                     location.reload();
                 } catch (error) {
                     alert('Ошибка при загрузке файла. Убедитесь, что это правильный JSON-файл.');
+                    console.error(error);
                 }
             };
             reader.readAsText(file);
